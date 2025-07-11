@@ -1,0 +1,81 @@
+{
+  "serial_port": "COM7",
+  "baudrate": 9600,
+  "timeout": 1.0,
+  "auto_connect": true,
+  "theme": "System",
+  "pins": {
+    "2": {
+      "mode": "output",
+      "type": "digital"
+    },
+    "3": {
+      "mode": "output",
+      "type": "pwm"
+    },
+    "4": {
+      "mode": "output",
+      "type": "digital"
+    },
+    "5": {
+      "mode": "output",
+      "type": "pwm"
+    },
+    "6": {
+      "mode": "output",
+      "type": "pwm"
+    },
+    "7": {
+      "mode": "output",
+      "type": "digital"
+    },
+    "8": {
+      "mode": "output",
+      "type": "digital"
+    },
+    "9": {
+      "mode": "output",
+      "type": "pwm"
+    },
+    "10": {
+      "mode": "output",
+      "type": "pwm"
+    },
+    "11": {
+      "mode": "output",
+      "type": "pwm"
+    },
+    "12": {
+      "mode": "output",
+      "type": "digital"
+    },
+    "13": {
+      "mode": "output",
+      "type": "digital"
+    },
+    "A0": {
+      "mode": "input",
+      "type": "analog"
+    },
+    "A1": {
+      "mode": "input",
+      "type": "analog"
+    },
+    "A2": {
+      "mode": "input",
+      "type": "analog"
+    },
+    "A3": {
+      "mode": "input",
+      "type": "analog"
+    },
+    "A4": {
+      "mode": "input",
+      "type": "analog"
+    },
+    "A5": {
+      "mode": "input",
+      "type": "analog"
+    }
+  }
+}
