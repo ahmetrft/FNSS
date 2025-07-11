@@ -5,6 +5,8 @@ import serial.tools.list_ports
 import queue
 from typing import Optional, Callable, List
 from datetime import datetime
+import json
+import os
 
 class SerialManager:
     """Merkezi serial haberleşme yöneticisi"""
@@ -32,6 +34,10 @@ class SerialManager:
         self.port_name = "COM4"
         self.baudrate = 9600
         
+        # Son başarılı port bilgisini yükle
+        self.last_successful_port = None
+        self._load_last_successful_port()
+        
         # Queues
         self.send_queue = queue.Queue()
         self.receive_queue = queue.Queue()
@@ -43,6 +49,33 @@ class SerialManager:
         # Statistics
         self.sent_count = 0
         self.received_count = 0
+    
+    def _load_last_successful_port(self):
+        """Son başarılı port bilgisini dosyadan yükle"""
+        try:
+            config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    self.last_successful_port = config.get("last_successful_port")
+        except Exception:
+            pass
+    
+    def _save_last_successful_port(self):
+        """Son başarılı port bilgisini dosyaya kaydet"""
+        try:
+            config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+            config = {}
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            
+            config["last_successful_port"] = self.last_successful_port
+            
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
     
     def add_message_callback(self, callback: Callable[[str, str], None]):
         """Mesaj alındığında çağrılacak callback ekle"""
@@ -65,24 +98,129 @@ class SerialManager:
             self.connection_callbacks.remove(callback)
     
     def get_available_ports(self) -> List[str]:
-        """Gerçekten mevcut (takılı) seri portları döndürür; fallback eklemez."""
+        """Gerçekten mevcut (takılı) seri portları döndürür"""
         try:
             return [port.device for port in serial.tools.list_ports.comports()]
         except Exception:
             return []
     
-    def connect(self, port: str = None, baudrate: int = None) -> bool:
+    def find_arduino_port(self, timeout: float = 3.0) -> Optional[str]:
+        """Arduino portunu bul - basit ve hızlı"""
+        # Eğer zaten bağlıysa, mevcut portu döndür
+        if self.is_connected:
+            return self.port_name
+            
+        available_ports = self.get_available_ports()
+        
+        if not available_ports:
+            return None
+        
+        # Son başarılı portu ilk sıraya al
+        if self.last_successful_port and self.last_successful_port in available_ports:
+            available_ports.remove(self.last_successful_port)
+            available_ports.insert(0, self.last_successful_port)
+        
+        for port in available_ports:
+            if self._test_port_quick(port, timeout):
+                self.last_successful_port = port
+                self._save_last_successful_port()
+                return port
+        
+        return None
+    
+    def _test_port_quick(self, port: str, timeout: float) -> bool:
+        """Portu hızlıca test et"""
+        test_serial = None
+        response_received = False
+        try:
+            # Portu aç
+            test_serial = serial.Serial(port, self.baudrate, timeout=timeout)
+            time.sleep(0.2)  # Kısa bağlantı stabilizasyonu
+            
+            # Port açıldı mı kontrol et
+            if not test_serial.is_open:
+                return False
+            
+            # Önce mevcut veriyi temizle
+            test_serial.reset_input_buffer()
+            test_serial.reset_output_buffer()
+            
+            # Arduino'nun tam olarak başlaması için bekle
+            time.sleep(2.0)  # Arduino'nun başlaması için 2 saniye bekle
+            
+            # Test mesajı gönder
+            test_message = "TEST\n"
+            test_serial.write(test_message.encode('utf-8'))
+            test_serial.flush()
+            
+            # Yanıt bekle
+            start_time = time.time()
+            
+            while time.time() - start_time < timeout:
+                if test_serial.in_waiting:
+                    try:
+                        response = test_serial.readline().decode('utf-8', errors='ignore').strip()
+                        
+                        if response == "1":
+                            response_received = True
+                            break
+                        elif response:  # Boş olmayan başka bir yanıt
+                            pass # Debug mesajları kaldırıldı
+                    except Exception as e:
+                        pass # Debug mesajları kaldırıldı
+                time.sleep(0.1)
+            
+            if response_received:
+                # Test başarılı! Bu bağlantıyı kullan
+                self.serial_port = test_serial
+                self.port_name = port
+                self.is_connected = True
+                
+                # Start serial thread
+                self.serial_thread = SerialThread(self.serial_port, self.send_queue, self.receive_queue)
+                self.serial_thread.start()
+                
+                # Notify callbacks
+                self._notify_connection_callbacks(True)
+                
+                return True
+            
+            return False
+            
+        except Exception as e:
+            # Port açılamadı
+            return False
+        finally:
+            # Sadece başarısız olursa kapat
+            if not response_received and test_serial and test_serial.is_open:
+                try:
+                    test_serial.close()
+                except Exception:
+                    pass
+    
+    def connect(self, port: str = None, baudrate: int = None, test_connection: bool = True) -> bool:
         """Serial bağlantısını aç"""
         if self.is_connected:
             return True
         
-        if port:
+        # Eğer port belirtilmişse
+        if port and not self.is_connected:
             self.port_name = port
-        if baudrate:
-            self.baudrate = baudrate
+            if baudrate:
+                self.baudrate = baudrate
+            
+            # Test modu aktifse test et, değilse direkt bağlan
+            if test_connection:
+                return self._test_port_quick(port, 3.0)
+            else:
+                return self._connect_direct(port, baudrate)
         
+        return False
+    
+    def _connect_direct(self, port: str, baudrate: int = None) -> bool:
+        """Direkt bağlantı kur (test yapmadan)"""
         try:
-            self.serial_port = serial.Serial(self.port_name, self.baudrate, timeout=1)
+            self.serial_port = serial.Serial(port, self.baudrate, timeout=1)
             time.sleep(1)  # Connection stabilization
             
             self.is_connected = True
@@ -97,10 +235,8 @@ class SerialManager:
             return True
             
         except serial.SerialException as e:
-            self._notify_message_callbacks("Hata", f"Serial bağlantısı açılamadı: {e}")
             return False
         except Exception as e:
-            self._notify_message_callbacks("Hata", f"Beklenmeyen hata: {e}")
             return False
 
     def disconnect(self):
@@ -110,16 +246,17 @@ class SerialManager:
             self.serial_thread = None
         
         if self.serial_port and self.serial_port.is_open:
-            self.serial_port.close()
+            try:
+                self.serial_port.close()
+            except Exception:
+                pass  # Port zaten kapanmış olabilir
         
         self.is_connected = False
         self._notify_connection_callbacks(False)
-        self._notify_message_callbacks("Sistem", "Serial bağlantısı kapatıldı")
     
     def send_message(self, message: str) -> bool:
         """Mesaj gönder"""
         if not self.is_connected:
-            self._notify_message_callbacks("Hata", "Serial bağlantısı yok")
             return False
         
         try:
@@ -135,7 +272,6 @@ class SerialManager:
             return True
             
         except Exception as e:
-            self._notify_message_callbacks("Hata", f"Mesaj gönderilemedi: {e}")
             return False
     
     def send_command(self, pin, state):
@@ -208,13 +344,18 @@ class SerialManager:
             'received_count': self.received_count,
             'is_connected': self.is_connected,
             'port_name': self.port_name,
-            'baudrate': self.baudrate
+            'baudrate': self.baudrate,
+            'last_successful_port': self.last_successful_port
         }
     
     def reset_stats(self):
         """İstatistikleri sıfırla"""
         self.sent_count = 0
         self.received_count = 0
+
+    def handle_connection_lost(self):
+        self.is_connected = False
+        self._notify_connection_callbacks(False)
 
 
 class SerialThread(threading.Thread):
@@ -230,6 +371,7 @@ class SerialThread(threading.Thread):
         self._last_send_ts = 0.0
     
     def run(self):
+        import sys
         while self.running:
             try:
                 # Sırayla gönder: yanıt gelmeden yenisini yollama
@@ -242,23 +384,27 @@ class SerialThread(threading.Thread):
                         self._last_send_ts = time.time()
                     except queue.Empty:
                         pass
-                
                 # Receive messages
                 if self.serial_port.in_waiting:
                     line = self.serial_port.readline().decode('utf-8', errors='ignore').strip()
                     if line:
                         self.receive_queue.put(line)
-                        # Yanıt alındı, yeni komut gönderilebilir
                         self._waiting_resp = False
-                
                 # Timeout: 300 ms içinde yanıt gelmezse beklemeyi bırak
                 if self._waiting_resp and (time.time() - self._last_send_ts) > 0.3:
                     self._waiting_resp = False
-
-                time.sleep(0.005)  # Reduce CPU usage
-                
+                time.sleep(0.005)
+            except (OSError, PermissionError) as e:
+                # Bağlantı koptu - thread'i durdur ve ana thread'e bildir
+                self.receive_queue.put(f"Serial thread hatası: Bağlantı koptu")
+                # SerialManager'a bildir
+                from core.serial_manager import serial_manager
+                serial_manager.handle_connection_lost()
+                break
             except Exception as e:
                 self.receive_queue.put(f"Serial thread hatası: {e}")
+                from core.serial_manager import serial_manager
+                serial_manager.handle_connection_lost()
                 break
     
     def stop(self):

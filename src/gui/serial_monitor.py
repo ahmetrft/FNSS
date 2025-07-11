@@ -177,7 +177,8 @@ class SerialMonitor(ctk.CTkToplevel):
             port = self.port_var.get()
             baudrate = int(self.baudrate_var.get())
 
-            if serial_manager.connect(port, baudrate):
+            # Manuel bağlantıda test yapmadan direkt bağlan
+            if serial_manager.connect(port, baudrate, test_connection=False):
                 self.log_message("Sistem", f"Serial bağlantısı açıldı: {port} @ {baudrate} bps", "info")
             else:
                 self.log_message("Hata", "Serial bağlantısı açılamadı", "error")
@@ -273,9 +274,12 @@ class SerialMonitor(ctk.CTkToplevel):
             self.log_message(source, message, "info" if source == "Sistem" else "error")
     
     def on_connection_changed(self, connected: bool):
-        """Bağlantı durumu değiştiğinde çağrılır"""
-        self.is_connected = connected
-        self.update_connection_status()
+        # Pencere kapalıysa hata verme
+        try:
+            self.is_connected = connected
+            self.update_connection_status()
+        except Exception:
+            pass
     
     def update_connection_status(self):
         """Bağlantı durumunu UI'da güncelle"""

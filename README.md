@@ -4,6 +4,12 @@ FNSS (Flexible Network Sensor System), Arduino pinlerini kontrol etmek ve okumak
 
 ## 🚀 Özellikler
 
+### 🔍 Otomatik Port Tarama
+- **Akıllı Port Algılama**: Bilgisayardaki tüm COM portlarını otomatik tarar
+- **Arduino Test Mesajı**: "TEST" mesajı göndererek Arduino varlığını doğrular
+- **Otomatik Bağlantı**: İlk çalışan Arduino portuna otomatik bağlanır
+- **Gerçek Zamanlı Durum**: Bağlantı durumunu canlı olarak gösterir
+
 ### 📝 Yazma Modu
 - **Dijital Pin Kontrolü**: Pin 2-13 arası dijital çıkış kontrolü
 - **PWM Kontrolü**: Pin 3, 5, 6, 9, 10, 11 için 0-255 arası PWM kontrolü
@@ -223,7 +229,7 @@ FNSS/
 
 ## 📝 Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+Bu proje MIT lisansı altında lisanslanmıştır. Ayrıntılar için LICENSE dosyasına bakınız.
 
 ## 🤝 Katkıda Bulunma
 

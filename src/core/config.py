@@ -23,9 +23,7 @@ for a in ANALOG_PINS:
     }
 
 DEFAULT_CONFIG = {
-    "serial_port": "COM7",
     "baudrate": 9600,
-    "timeout": 1,
     "theme": "System",
     "pins": DEFAULT_PINS_CONFIG
 }

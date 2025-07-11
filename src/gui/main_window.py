@@ -5,12 +5,14 @@ import customtkinter as ctk
 from utils.logger import bring_to_front_and_center
 from core.config import load_config, save_config
 from core.serial_manager import serial_manager
+import threading
+import tkinter.messagebox as messagebox
 
 class MainWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("FNSS Arduino Control Project")
-        self.geometry("480x400")
+        self.geometry("480x420")  # Orijinal boyuta döndürdüm
         self.resizable(False, False)
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
@@ -23,10 +25,8 @@ class MainWindow(ctk.CTk):
             logo_path_ico = os.path.normpath(os.path.join(logo_dir, "indir.ico"))
 
             if os.path.exists(logo_path_ico):
-                # Windows .ico format (en sağlam yol)
                 self.iconbitmap(default=logo_path_ico)
             elif os.path.exists(logo_path_png):
-                # PNG yolunu tkinter.PhotoImage ile dene (Tk >=8.6 gerektirir)
                 try:
                     icon_img = tk.PhotoImage(file=logo_path_png)
                     self.iconphoto(False, icon_img)
@@ -36,29 +36,79 @@ class MainWindow(ctk.CTk):
             pass
         bring_to_front_and_center(self)
 
-        # Port seçici kaldırıldı – otomatik algılama kullanılıyor
+        self.connection_status_label = None
+        self.arduino_found = False
+        self.serial_monitor = None
 
-        # Auto serial connect if enabled in config
+        # Bağlantı callback'ini ekle
+        serial_manager.add_connection_callback(self._on_connection_changed)
+        serial_manager.add_message_callback(self._on_message_received)
+
         self.after(100, self._init_serial)
 
     def _init_serial(self):
-        # Otomatik port tarama kaldırıldı; yalnızca config'teki port denenir
-        cfg = load_config()
-
-        port = cfg.get("serial_port")
-        baud = cfg.get("baudrate", 9600)
-
-        serial_manager.connect(port, baud)
+        # Otomatik Arduino bağlantısı başlat
+        self._auto_connect()
 
         self.serial_monitor = None
         self._build_menu()
 
+    def _auto_connect(self):
+        """Otomatik Arduino bağlantısı"""
+        # Thread kullanmadan doğrudan port tarama yap
+        arduino_port = serial_manager.find_arduino_port(timeout=3.0)
+        if arduino_port:
+            # Port bulundu, bağlantı kur
+            if serial_manager.connect(arduino_port, serial_manager.baudrate):
+                self.arduino_found = True
+            else:
+                self._show_arduino_error()
+        else:
+            self._show_arduino_error()
+
+    def _show_arduino_error(self):
+        """Arduino bulunamadığında uyarı penceresi göster"""
+        messagebox.showwarning(
+            "Arduino Bulunamadı",
+            "Bağlı portlarda Arduino bulunamadı!\n\n"
+            "Lütfen şunları kontrol edin:\n"
+            "• Arduino'nun USB kablosu ile bağlı olduğundan emin olun\n"
+            "• Arduino kodunun yüklü olduğunu kontrol edin"
+        )
+
+    def _on_connection_changed(self, connected: bool):
+        # Pencere kapalıysa hata verme
+        try:
+            if self.connection_status_label:
+                stats = serial_manager.get_stats()
+                if connected:
+                    self.connection_status_label.configure(
+                        text=f"✅ Bağlı: {stats['port_name']} ({stats['baudrate']} baud)",
+                        text_color="green"
+                    )
+                else:
+                    self.connection_status_label.configure(
+                        text="❌ Bağlantı yok",
+                        text_color="red"
+                    )
+        except Exception:
+            pass
+
+    def _on_message_received(self, source: str, message: str):
+        """Mesaj alındığında çağrılır"""
+        if source == "Alınan" and "Bağlantı koptu" in message:
+            # Bağlantı koptuğunda durumu güncelle
+            if self.connection_status_label:
+                self.connection_status_label.configure(
+                    text="❌ Bağlantı yok",
+                    text_color="red"
+                )
 
     def _build_menu(self):
         frame = ctk.CTkFrame(self)
         frame.pack(expand=True, fill="both", padx=40, pady=40)
 
-        frame.grid_rowconfigure((0,1,2,3,4), weight=0)
+        frame.grid_rowconfigure((0,1,2,3,4,5), weight=0)
         frame.grid_columnconfigure(0, weight=1)
 
         # Logo – assets/logo.png varsa
@@ -68,11 +118,11 @@ class MainWindow(ctk.CTk):
             logo_path = os.path.join(os.path.dirname(__file__), "..", "assets", "logo.png")
             if os.path.exists(logo_path):
                 logo_img = ctk.CTkImage(light_image=Image.open(logo_path), size=(152, 40))
-                ctk.CTkLabel(frame, image=logo_img, text="").grid(row=0, column=0, pady=(20, 25), sticky="n")
+                ctk.CTkLabel(frame, image=logo_img, text="").grid(row=0, column=0, pady=(20, 15), sticky="n")
             else:
                 raise FileNotFoundError
         except Exception:
-            ctk.CTkLabel(frame, text="FNSS", font=("Arial", 24, "bold")).grid(row=0, column=0, pady=(20, 25), sticky="n")
+            ctk.CTkLabel(frame, text="FNSS", font=("Arial", 24, "bold")).grid(row=0, column=0, pady=(20, 15), sticky="n")
 
         btn_ctrl = ctk.CTkButton(frame, text="Kontrol Modu", font=("Arial", 16), height=48, width=220, command=self.open_control_mode)
         btn_ctrl.grid(row=1, column=0, pady=12, sticky="n")
@@ -82,6 +132,22 @@ class MainWindow(ctk.CTk):
 
         btn_serial = ctk.CTkButton(frame, text="Serial Monitor", font=("Arial", 16), height=48, width=220, command=self.open_serial_monitor)
         btn_serial.grid(row=3, column=0, pady=12, sticky="n")
+
+        # Bağlantı durumu en alta alındı
+        stats = serial_manager.get_stats()
+        if stats['is_connected']:
+            status_text = f"✅ Bağlı: {stats['port_name']} ({stats['baudrate']} baud)"
+            status_color = "green"
+        else:
+            status_text = "❌ Bağlantı yok"
+            status_color = "red"
+        self.connection_status_label = ctk.CTkLabel(
+            frame, 
+            text=status_text, 
+            font=("Arial", 12),
+            text_color=status_color
+        )
+        self.connection_status_label.grid(row=5, column=0, pady=(20, 0), sticky="s")
 
     def open_control_mode(self):
         ControlMenu(self)

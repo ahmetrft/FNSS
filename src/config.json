@@ -1,7 +1,5 @@
 {
-  "serial_port": "COM7",
   "baudrate": 9600,
-  "timeout": 1.0,
   "auto_connect": true,
   "theme": "System",
   "pins": {
@@ -77,5 +75,6 @@
       "mode": "input",
       "type": "analog"
     }
-  }
+  },
+  "last_successful_port": "COM4"
 }
