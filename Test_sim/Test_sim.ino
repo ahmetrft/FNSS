@@ -23,49 +23,35 @@ void setup() {
 void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
-    // Pin modu değiştirme: "MODE <pin>,<mode>" (0=INPUT, 1=OUTPUT)
-    if (cmd.startsWith("MODE ")) {
-      int commaIdx = cmd.indexOf(',');
-      if (commaIdx > 5) {
-        int pin = cmd.substring(5, commaIdx).toInt();
-        int mode = cmd.substring(commaIdx + 1).toInt();
-        if (pin >= 2 && pin <= 19) {
-          if (mode == 2) {
-            pinMode(pin, INPUT);
-            pinModes[pin] = 2;
-            Serial.print("PIN "); Serial.print(pinLabel(pin)); Serial.println(":PAS");
-          } else {
-            pinMode(pin, mode == 1 ? OUTPUT : INPUT);
-            pinModes[pin] = mode;
-            Serial.print("PIN "); Serial.print(pinLabel(pin)); Serial.print(":");
-            Serial.println(mode == 1 ? "OUT" : "IN");
-          }
-        }
-      }
+    cmd.trim(); // sondaki \r veya boşlukları temizle
+    
+    if (cmd.equals("TEST")) { 
+      Serial.println("1"); 
     }
-    // PWM yazma: "PWM <pin>,<value>" (0-255)
-    else if (cmd.startsWith("PWM ")) {
+    // Pin modu değiştirme: "MODE <pin>,<mode>" (0=INPUT, 1=OUTPUT, 2=PAS)
+    else if (cmd.startsWith("MODE ")) {
       int commaIdx = cmd.indexOf(',');
-      if (commaIdx > 0) {
-        int pin = cmd.substring(4, commaIdx).toInt();
-        int value = cmd.substring(commaIdx + 1).toInt();
-        // Sadece PWM destekli pinler: 3, 5, 6, 9, 10, 11
-        if ((pin == 3 || pin == 5 || pin == 6 || pin == 9 || pin == 10 || pin == 11) && pinModes[pin] == 1) { // Changed pinModes[pin] to pinModes[pin] == 1
-          analogWrite(pin, value);
-          pinStates[pin] = value;
-          Serial.print("PIN ");
-          Serial.print(pinLabel(pin));
-          if(pin<10) Serial.print("  : "); else Serial.print(" : ");
-          Serial.println(value);
-        }
-        // Analog pinler için (A0-A5 = 14-19) dijital çıkış (HIGH/LOW) olarak kullanılır
-        else if (pin >= 14 && pin <= 19 && pinModes[pin] == 1) { // Changed pinModes[pin] to pinModes[pin] == 1
-          digitalWrite(pin, value > 0 ? HIGH : LOW);
-          pinStates[pin] = (value > 0 ? 1 : 0);
-          Serial.print("PIN ");
-          Serial.print(pinLabel(pin));
-          Serial.print(value > 0 ? " ON" : " OFF");
-          Serial.println();
+      if (commaIdx <= 5) return; // eksik komutu yoksay
+      int pin = cmd.substring(5, commaIdx).toInt();
+      String val = cmd.substring(commaIdx + 1);
+      val.trim();
+      val.toUpperCase();
+      int mode;
+      if (val == "2" || val == "PAS" || val == "PASS" || val == "PASIF") mode = 2;
+      else mode = (val == "1" || val == "OUT" || val == "OUTPUT") ? 1 : 0;
+      
+      if (pin >= 2 && pin <= 19) {
+        if (mode == 2) {
+          pinMode(pin, INPUT);
+          pinModes[pin] = 2;
+          String msg = "PIN " + pinLabel(pin) + ":PAS";
+          Serial.println(msg);
+        } else {
+          pinMode(pin, mode == 1 ? OUTPUT : INPUT);
+          pinModes[pin] = mode;
+          String modeStr = mode == 1 ? "OUT" : "IN";
+          String msg = "PIN " + pinLabel(pin) + ":" + modeStr;
+          Serial.println(msg);
         }
       }
     }
@@ -74,13 +60,24 @@ void loop() {
       int commaIdx = cmd.indexOf(',');
       int pin = cmd.substring(0, commaIdx).toInt();
       int state = cmd.substring(commaIdx + 1).toInt();
-      if (pin >= 2 && pin <= 19 && pinModes[pin] == 1) { // Changed pinModes[pin] to pinModes[pin] == 1
+      if (pin >= 2 && pin <= 19 && pinModes[pin]) {
         digitalWrite(pin, state == 1 ? HIGH : LOW);
         pinStates[pin] = state;
-        Serial.print("PIN ");
-        Serial.print(pinLabel(pin));
-        if(pin<10) Serial.print("  : "); else Serial.print(" : ");
-        Serial.println(state == 1 ? "ON" : "OFF");
+        String s = "PIN " + pinLabel(pin) + " : " + (state == 1 ? "ON" : "OFF");
+        Serial.println(s);
+      }
+    }
+    // PWM yazma: "PWM <pin>,<value>" (0-255)
+    else if (cmd.startsWith("PWM ")) {
+      int commaIdx = cmd.indexOf(',');
+      int pin = cmd.substring(4, commaIdx).toInt();
+      int value = cmd.substring(commaIdx + 1).toInt();
+      // Sadece PWM destekli pinler: 3, 5, 6, 9, 10, 11
+      if ((pin == 3 || pin == 5 || pin == 6 || pin == 9 || pin == 10 || pin == 11) && pinModes[pin]) {
+        analogWrite(pin, value);
+        pinStates[pin] = value;
+        String s = "PIN " + pinLabel(pin) + " : " + String(value);
+        Serial.println(s);
       }
     }
     // Tüm pinleri aç/kapat: "ALL <state>" (state 0 veya 1)
@@ -91,13 +88,14 @@ void loop() {
         // PWM destekli pinler
         if (p == 3 || p == 5 || p == 6 || p == 9 || p == 10 || p == 11) {
           analogWrite(p, state == 1 ? 255 : 0);
+          pinStates[p] = state == 1 ? 255 : 0;
         } else {
           digitalWrite(p, state == 1 ? HIGH : LOW);
+          pinStates[p] = state == 1 ? 1 : 0;
         }
-        pinStates[p] = (state == 1 ? 1 : 0);
       }
-      String s = String("PIN ALL: ") + (state == 1 ? "ON" : "OFF");
-      Serial.println(s);
+      String msg = String("PIN ALL: ") + (state == 1 ? "ON" : "OFF");
+      Serial.println(msg);
     }
     // 'STAT' komutu: tüm pin durumlarını ve modlarını gönder
     else if (cmd.equals("STAT")) {
@@ -106,7 +104,7 @@ void loop() {
         Serial.print(":");
         Serial.print(pinStates[p]);
         Serial.print(":");
-        Serial.print(pinModes[p]);
+        Serial.print(pinModes[p]); // 0/1/2
         if (p < 19) Serial.print(",");
       }
       Serial.println();
@@ -117,7 +115,7 @@ void loop() {
         if (!pinModes[p]) {
           int val = digitalRead(p);
           Serial.print("D");
-          Serial.print(pinLabel(p));
+          Serial.print(p);
           Serial.print(":");
           Serial.print(val);
           Serial.print(",");
