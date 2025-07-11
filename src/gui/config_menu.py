@@ -40,12 +40,6 @@ class ConfigMenu(ctk.CTkToplevel):
         # Başlık
         ctk.CTkLabel(main_frame, text="Konfigürasyon Ayarları", font=("Arial", 20, "bold")).grid(row=0, column=0, pady=(0, 20))
 
-        # --- Gizli Değişkenler (Seri port ve tema halen config'te saklanıyor) ---
-        self.port_var = ctk.StringVar(value=self.config_data.get("serial_port", "COM7"))
-        self.baudrate_var = ctk.StringVar(value=str(self.config_data.get("baudrate", 9600)))
-        self.timeout_var = ctk.StringVar(value=str(self.config_data.get("timeout", 1)))
-        self.theme_var = ctk.StringVar(value=self.config_data.get("theme", "System"))
-
         # (Seri Port Ayarları bölümü kaldırıldı)
 
         # --- Pin Ayarları ---
@@ -254,15 +248,6 @@ class ConfigMenu(ctk.CTkToplevel):
     def save_settings(self):
         """Ayarları kaydeder."""
         try:
-            self.config_data.update({
-                "serial_port": self.port_var.get(),
-                "baudrate": int(self.baudrate_var.get()),
-                "timeout": float(self.timeout_var.get()),
-                "theme": self.theme_var.get()
-            })
-            # auto_connect anahtarı artık kullanılmıyor, varsa sil
-            self.config_data.pop("auto_connect", None)
-
             # Pin ayarlarını topla
             pins_cfg = {}
             for pin, vars_ in self.pin_widgets.items():
@@ -335,11 +320,12 @@ class ConfigMenu(ctk.CTkToplevel):
         """Ayarları varsayılan değerlere döndürür."""
         import copy
         from core import config as cfg
+        from core.config import load_config
+        old_config = load_config()
+        last_port = old_config.get("last_successful_port")
         self.config_data = copy.deepcopy(cfg.DEFAULT_CONFIG)
-        self.port_var.set(self.config_data["serial_port"])
-        self.baudrate_var.set(str(self.config_data["baudrate"]))
-        self.timeout_var.set(str(self.config_data["timeout"]))
-        self.theme_var.set(self.config_data["theme"])
+        if last_port:
+            self.config_data["last_successful_port"] = last_port
 
         # Reset pin widgets
         for pin, v in self.pin_widgets.items():

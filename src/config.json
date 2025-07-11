@@ -1,7 +1,4 @@
 {
-  "baudrate": 9600,
-  "auto_connect": true,
-  "theme": "System",
   "pins": {
     "2": {
       "mode": "output",

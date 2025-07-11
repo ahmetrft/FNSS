@@ -20,7 +20,7 @@ class ControlMenu(ctk.CTkToplevel):
         est_row_h = 28
         total_pin_rows = len([p for p in DIGITAL_PINS if load_config()["pins"].get(str(p), {}).get("mode", "output") != "pas"]) + \
                          len([a for a in ANALOG_PINS if load_config()["pins"].get(a, {}).get("mode", "input") != "pas"])
-        base_height = 400  # başlıklar, butonlar vb.
+        base_height = 420  # başlıklar, butonlar vb.
         self.geometry(f"640x{base_height + est_row_h * total_pin_rows}")
         self.resizable(False, False)
         ctk.set_appearance_mode("System")
@@ -77,87 +77,98 @@ class ControlMenu(ctk.CTkToplevel):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         main_frame = ctk.CTkFrame(self)
-        main_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+        main_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # İki alt çerçeve: Dijital ve Analog
         digital_frame = ctk.CTkFrame(main_frame)
-        digital_frame.configure(border_width=1, border_color="#FF9500")
-        digital_frame.pack(fill="x", pady=(0, 12))
+        digital_frame.configure(border_width=2, border_color="#FF9500")
+        digital_frame.pack(fill="x", padx=0, pady=(0, 12))
 
         analog_frame = ctk.CTkFrame(main_frame)
-        analog_frame.configure(border_width=1, border_color="#34C759")
-        analog_frame.pack(fill="x", pady=(0, 12))
+        analog_frame.configure(border_width=2, border_color="#34C759")
+        analog_frame.pack(fill="x", padx=0, pady=(0, 12))
 
-        # Dijital/analog sonrası kontrol butonları ana frame içinde en altta grid ile yerleşecek
-        # Sabit sütun genişlikleri – hem dijital hem analog için aynı
-        col_sizes = {0: 40, 1: 100, 2: 140, 3: 80}
-        for idx, size in col_sizes.items():
-            digital_frame.grid_columnconfigure(idx, minsize=size)
-            analog_frame.grid_columnconfigure(idx, minsize=size)
+        # Başlıkları ortalamak için columnconfigure
+        digital_frame.grid_columnconfigure(0, weight=1)
+        analog_frame.grid_columnconfigure(0, weight=1)
 
-        ctk.CTkLabel(digital_frame, text="Dijital Pinler (Yazma / Okuma)", font=("Arial", 16, "bold"))\
-            .grid(row=0, column=0, columnspan=6, pady=(0, 10))
+        # Dijital frame için iç container
+        digital_container = ctk.CTkFrame(digital_frame, fg_color="transparent")
+        digital_container.pack(fill="both", expand=True, padx=8, pady=6)
+        for i in range(4):
+            digital_container.grid_columnconfigure(i, weight=1)
+        digital_container.grid_columnconfigure(2, minsize=200)
+
+        # Dijital başlık
+        ctk.CTkLabel(digital_container, text="Dijital Pinler (Yazma / Okuma)", font=("Arial", 15, "bold"))\
+            .grid(row=0, column=0, columnspan=4, pady=(8, 8), sticky="ew")
         
         # Dijital kolon başlıkları
         digital_headers = ["Pin", "Çıkış", "PWM", "Giriş"]
         for i, h1 in enumerate(digital_headers):
-            ctk.CTkLabel(digital_frame, text=h1, font=("Arial", 13, "bold"))\
-                .grid(row=1, column=i, padx=6, pady=4)
+            ctk.CTkLabel(digital_container, text=h1, font=("Arial", 13, "bold"), anchor="center")\
+                .grid(row=1, column=i, padx=6, pady=4, sticky="ew")
 
         # Dijital pin satırları (yalnızca aktif pinler)
         row_ptr = 2
+        toggle_width = 100  # Toggle butonlarının genişliğiyle aynı olmalı, sütun minsize ile eşit
         for pin in self.active_pins_digital:
             pin_conf = self.config_data["pins"].get(str(pin), {})
             p_type = pin_conf.get("type", "digital")
             p_mode = pin_conf.get("mode", "output")
 
-            ctk.CTkLabel(digital_frame, text=str(pin)).grid(row=row_ptr, column=0)
+            ctk.CTkLabel(digital_container, text=str(pin)).grid(row=row_ptr, column=0)
 
             # Çıkış toggle – yalnızca OUTPUT modundaysa gösterilir
             if p_mode == "output":
-                toggle = ctk.CTkSwitch(digital_frame, text="", command=partial(self._on_toggle, pin))
-                toggle.grid(row=row_ptr, column=1, padx=(65, 0))
+                toggle = ctk.CTkSwitch(digital_container, text="", command=partial(self._on_toggle, pin), width=toggle_width)
+                toggle.grid(row=row_ptr, column=1, padx=(100, 0), sticky="ew")
                 self.toggle_widgets[pin] = toggle
                 self._dbg(toggle)
             else:
-                ctk.CTkLabel(digital_frame, text="").grid(row=row_ptr, column=1, padx=(65, 0))
+                ctk.CTkLabel(digital_container, text="", width=toggle_width, anchor="center").grid(row=row_ptr, column=1, padx=(100, 0), sticky="ew")
 
             # PWM slider
             if p_mode == "output" and p_type == "pwm":
-                slider = ctk.CTkSlider(digital_frame, from_=0, to=255, number_of_steps=255, width=120,
+                slider = ctk.CTkSlider(digital_container, from_=0, to=255, number_of_steps=255, width=120,
                                        command=partial(self._on_pwm_change, pin))
                 slider.grid(row=row_ptr, column=2)
                 self.slider_widgets[pin] = slider
                 self._dbg(slider)
             else:
                 # Boş hücre
-                ctk.CTkLabel(digital_frame, text="").grid(row=row_ptr, column=2)
+                ctk.CTkLabel(digital_container, text="").grid(row=row_ptr, column=2)
 
             # Okuma göstergesi
             if p_mode == "input":
-                lbl = ctk.CTkLabel(digital_frame, text="●", text_color=self._color_gray)
+                lbl = ctk.CTkLabel(digital_container, text="●", text_color=self._color_gray)
                 lbl.grid(row=row_ptr, column=3)
                 self.digital_indicators[pin] = lbl
                 self._dbg(lbl)
             else:
-                ctk.CTkLabel(digital_frame, text="●", text_color=self._color_gray).grid(row=row_ptr, column=3)
+                ctk.CTkLabel(digital_container, text="●", text_color=self._color_gray).grid(row=row_ptr, column=3)
 
             row_ptr += 1
+        # Dijital frame altına boşluk için dummy satır
 
-        # Analog bölüm
-        ctk.CTkLabel(analog_frame, text="Analog Pinler", font=("Arial", 16, "bold"))\
-            .grid(row=0, column=0, columnspan=6, pady=(0, 10))
+        # Analog frame için iç container
+        analog_container = ctk.CTkFrame(analog_frame, fg_color="transparent")
+        analog_container.pack(fill="both", expand=True, padx=8, pady=6)
+        for i in range(4):
+            analog_container.grid_columnconfigure(i, weight=1)
+        analog_container.grid_columnconfigure(2, minsize=200)
+
+        # Analog başlık
+        ctk.CTkLabel(analog_container, text="Analog Pinler", font=("Arial", 15, "bold"))\
+            .grid(row=0, column=0, columnspan=4, pady=(8, 8), sticky="ew")
         a_row_ptr = 1
 
-        # Analog kolon başlıkları
-        analog_headers = ["Pin", "Çıkış", "Giriş"]
+        # Analog başlıklar: Pin | Çıkış | Değer | Giriş
+        analog_headers = ["Pin", "Çıkış", "Değer", "Giriş"]
         for j, h2 in enumerate(analog_headers):
-            col_idx = [0, 1, 3][j]
-            ctk.CTkLabel(analog_frame, text=h2, font=("Arial", 13, "bold"))\
-                .grid(row=a_row_ptr, column=col_idx, padx=6, pady=4)
+            ctk.CTkLabel(analog_container, text=h2, font=("Arial", 13, "bold"), anchor="center")\
+                .grid(row=a_row_ptr, column=j, padx=6, pady=4, sticky="ew")
         a_row_ptr += 1
-        # Placeholder sütun (PWM hizası için)
-        ctk.CTkLabel(analog_frame, text="").grid(row=a_row_ptr-1, column=2, padx=6, pady=4)
 
         for name in self.active_pins_analog:
             pin_num = 14 + ANALOG_PINS.index(name)
@@ -165,38 +176,44 @@ class ControlMenu(ctk.CTkToplevel):
             p_mode = pin_conf.get("mode", "input")
             p_type = pin_conf.get("type", "analog")
 
-            ctk.CTkLabel(analog_frame, text=name).grid(row=a_row_ptr, column=0)
+            ctk.CTkLabel(analog_container, text=name).grid(row=a_row_ptr, column=0)
 
-            # Çıkış toggle
+            # Çıkış toggle – yalnızca OUTPUT modundaysa gösterilir
             if p_mode == "output":
-                a_toggle = ctk.CTkSwitch(analog_frame, text="", command=partial(self._on_toggle, pin_num))
-                a_toggle.grid(row=a_row_ptr, column=1, padx=(65, 0))
+                a_toggle = ctk.CTkSwitch(analog_container, text="", command=partial(self._on_toggle, pin_num), width=toggle_width)
+                a_toggle.grid(row=a_row_ptr, column=1, padx=(100, 0), sticky="ew")
                 self.toggle_widgets[pin_num] = a_toggle
                 self._dbg(a_toggle)
             else:
-                ctk.CTkLabel(analog_frame, text="").grid(row=a_row_ptr, column=1, padx=(65, 0))
+                ctk.CTkLabel(analog_container, text="", width=toggle_width, anchor="center").grid(row=a_row_ptr, column=1, padx=(100, 0), sticky="ew")
+
+            # Değer sütunu (sadece analog input için)
+            if p_mode == "input" and p_type == "analog":
+                lbl = ctk.CTkLabel(analog_container, text="0", width=60)
+                lbl.grid(row=a_row_ptr, column=2)
+                self.analog_num_labels[name] = lbl
+                self._dbg(lbl)
+            else:
+                ctk.CTkLabel(analog_container, text="").grid(row=a_row_ptr, column=2)
 
             # Giriş gösterimi
-            if p_mode == "input":
-                if p_type == "analog":
-                    lbl = ctk.CTkLabel(analog_frame, text="0", width=60)
-                    lbl.grid(row=a_row_ptr, column=3)
-                    self.analog_num_labels[name] = lbl
-                    self._dbg(lbl)
-                else:  # dijital okuma
-                    lbl = ctk.CTkLabel(analog_frame, text="●", text_color=self._color_gray)
-                    lbl.grid(row=a_row_ptr, column=3)
-                    self.analog_indicators[pin_num] = lbl
-                    self._dbg(lbl)
+            if p_mode == "input" and p_type != "analog":
+                lbl = ctk.CTkLabel(analog_container, text="●", text_color=self._color_gray)
+                lbl.grid(row=a_row_ptr, column=3)
+                self.analog_indicators[pin_num] = lbl
+                self._dbg(lbl)
+            elif p_mode == "input" and p_type == "analog":
+                ctk.CTkLabel(analog_container, text="").grid(row=a_row_ptr, column=3)
             else:
-                ctk.CTkLabel(analog_frame, text="●", text_color=self._color_gray).grid(row=a_row_ptr, column=3)
+                ctk.CTkLabel(analog_container, text="●", text_color=self._color_gray).grid(row=a_row_ptr, column=3)
 
             a_row_ptr += 1
- 
+        # Analog frame altına boşluk için dummy satır
+
         # --- Kontrol Butonları (Okuma & Pattern) ---
         ctrl_frame = ctk.CTkFrame(main_frame)
-        ctrl_frame.configure(border_width=1, border_color="#007AFF")
-        ctrl_frame.pack(pady=(10, 10))
+        ctrl_frame.configure(border_width=2, border_color="#007AFF")
+        ctrl_frame.pack(fill="x", padx=0, pady=(10, 10))
         ctrl_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
 
         # Sol taraf: Okuma kontrolleri

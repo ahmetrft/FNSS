@@ -23,8 +23,6 @@ for a in ANALOG_PINS:
     }
 
 DEFAULT_CONFIG = {
-    "baudrate": 9600,
-    "theme": "System",
     "pins": DEFAULT_PINS_CONFIG
 }
 
