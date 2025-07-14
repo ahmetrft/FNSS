@@ -1,0 +1,34 @@
+# Python derleme dosyaları
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# PyInstaller build çıktıları
+build/
+dist/
+*.spec
+
+# IDE/editor dosyaları
+.vscode/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+.idea/
+
+# Log ve geçici dosyalar
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Kişisel/şirket assetleri
+src/assets/
+
+# Config dosyası (kullanıcıya özel)
+config.json
+
+# Sanal ortamlar
+venv/
+.env/ 

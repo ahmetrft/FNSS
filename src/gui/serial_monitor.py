@@ -1,14 +1,22 @@
 import customtkinter as ctk
-from utils.logger import bring_to_front_and_center
+from utils.logger import bring_to_front_and_center, get_asset_path
 from core.serial_manager import serial_manager
 import threading
 import time
 from datetime import datetime
+import os
 
 class SerialMonitor(ctk.CTkToplevel):
     def __init__(self, master=None):
         super().__init__(master)
         self.title("Serial Monitor - Arduino Haberleşme")
+        # İkonu ayarla
+        try:
+            ico_path = get_asset_path("indir.ico")
+            if os.path.exists(ico_path):
+                self.iconbitmap(default=ico_path)
+        except Exception:
+            pass
         # Daha geniş pencere
         self.geometry("950x600")
         self.resizable(True, True)

@@ -1,4 +1,13 @@
 
+import os
+import sys
+
+def get_asset_path(filename):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, "src", "assets", filename)
+    else:
+        return os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "assets", filename))
+
 
 def bring_to_front_and_center(window):
     """

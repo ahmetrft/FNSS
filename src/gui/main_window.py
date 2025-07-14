@@ -7,6 +7,14 @@ from core.config import load_config, save_config
 from core.serial_manager import serial_manager
 import threading
 import tkinter.messagebox as messagebox
+import os
+import sys
+
+def get_asset_path(filename):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, "src", "assets", filename)
+    else:
+        return os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "assets", filename))
 
 class MainWindow(ctk.CTk):
     def __init__(self):
@@ -19,10 +27,8 @@ class MainWindow(ctk.CTk):
         # Uygulama ikonu
         try:
             import tkinter as tk
-            import os
-            logo_dir = os.path.join(os.path.dirname(__file__), "..", "assets")
-            logo_path_png = os.path.normpath(os.path.join(logo_dir, "logo.png"))
-            logo_path_ico = os.path.normpath(os.path.join(logo_dir, "indir.ico"))
+            logo_path_png = get_asset_path("logo.png")
+            logo_path_ico = get_asset_path("indir.ico")
 
             if os.path.exists(logo_path_ico):
                 self.iconbitmap(default=logo_path_ico)

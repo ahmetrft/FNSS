@@ -1,10 +1,11 @@
 import customtkinter as ctk
-from utils.logger import bring_to_front_and_center
+from utils.logger import bring_to_front_and_center, get_asset_path
 import serial
 import serial.tools.list_ports
 # PinManager'ı da ekle
 from core.config import load_config, save_config, DIGITAL_PINS, ANALOG_PINS, PWM_DIGITAL_PINS
 from core.pin_manager import pin_manager
+import os
 
 class ConfigMenu(ctk.CTkToplevel):
     def __init__(self, master=None):
@@ -14,6 +15,13 @@ class ConfigMenu(ctk.CTkToplevel):
         self.resizable(False, False)
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
+        # İkonu ayarla
+        try:
+            ico_path = get_asset_path("indir.ico")
+            if os.path.exists(ico_path):
+                self.iconbitmap(default=ico_path)
+        except Exception:
+            pass
         # Konfigürasyonu çek
         self.config_data = load_config()
         self._build_layout()

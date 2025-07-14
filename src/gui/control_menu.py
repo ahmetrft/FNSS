@@ -5,8 +5,9 @@ PinManager ile haberleşir, Scheduler ile periyodik okuma gerçekleştirir.
 import customtkinter as ctk
 from functools import partial
 from typing import Dict
+import os
 
-from utils.logger import bring_to_front_and_center
+from utils.logger import bring_to_front_and_center, get_asset_path
 from core.config import load_config, DIGITAL_PINS, ANALOG_PINS, PWM_DIGITAL_PINS
 from core.pin_manager import pin_manager
 from core.scheduler import scheduler
@@ -17,6 +18,13 @@ class ControlMenu(ctk.CTkToplevel):
     def __init__(self, master=None):
         super().__init__(master)
         self.title("Kontrol Modu - Arduino Pin Yönetimi")
+        # İkonu ayarla
+        try:
+            ico_path = get_asset_path("indir.ico")
+            if os.path.exists(ico_path):
+                self.iconbitmap(default=ico_path)
+        except Exception:
+            pass
         # Dinamik yükseklik hesapla (sabit üst+alt alan + pin başına 28px)
         est_row_h = 28
         total_pin_rows = len([p for p in DIGITAL_PINS if load_config()["pins"].get(str(p), {}).get("mode", "output") != "pas"]) + \

@@ -192,8 +192,9 @@ Bu proje MIT lisansı ile lisanslanmıştır. Detaylar için [LICENSE](LICENSE) 
 - 🐙 GitHub: [@ahmetrft](https://github.com/ahmetrft)
 - 🔗 LinkedIn: [Ahmet Rıfat Karademir](https://www.linkedin.com/in/ahmetrifatkarademir)
 
-🙏 Teşekkürler
-- **FNSS** şirketine bu projeyi geliştirme fırsatı verdiği için##
+## 🙏 Teşekkürler
+- **FNSS** şirketine bu projeyi geliştirme fırsatı verdiği için
+
 ---
 
 ⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!
