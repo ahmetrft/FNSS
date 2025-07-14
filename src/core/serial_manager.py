@@ -7,6 +7,7 @@ from typing import Optional, Callable, List
 from datetime import datetime
 import json
 import os
+from core.config import get_config_path
 
 class SerialManager:
     """Merkezi serial haberleşme yöneticisi"""
@@ -53,7 +54,7 @@ class SerialManager:
     def _load_last_successful_port(self):
         """Son başarılı port bilgisini dosyadan yükle"""
         try:
-            config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+            config_path = get_config_path()
             if os.path.exists(config_path):
                 with open(config_path, 'r', encoding='utf-8') as f:
                     config = json.load(f)
@@ -64,7 +65,7 @@ class SerialManager:
     def _save_last_successful_port(self):
         """Son başarılı port bilgisini dosyaya kaydet"""
         try:
-            config_path = os.path.join(os.path.dirname(__file__), "..", "config.json")
+            config_path = get_config_path()
             config = {}
             if os.path.exists(config_path):
                 with open(config_path, 'r', encoding='utf-8') as f:
