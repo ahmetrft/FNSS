@@ -288,7 +288,7 @@ class ControlMenu(ctk.CTkToplevel):
         pattern_frame = ctk.CTkFrame(ctrl_frame)
         pattern_frame.grid(row=0, column=3, columnspan=3, padx=10, pady=10, sticky="e")
 
-        ctk.CTkLabel(pattern_frame, text="Patternler", font=("Arial", 13, "bold")).grid(row=0, column=0, columnspan=4, pady=(0, 6))
+        ctk.CTkLabel(pattern_frame, text="Okuma", font=("Arial", 13, "bold")).grid(row=0, column=0, columnspan=4, pady=(0, 6))
 
         # Pattern yönetimi
         self.pattern_stop_events = {}
@@ -409,6 +409,22 @@ class ControlMenu(ctk.CTkToplevel):
 
         ctk.CTkButton(single_frame, text="Hepsi Açık", width=80, command=self._all_on).grid(row=0, column=0, padx=4)
         ctk.CTkButton(single_frame, text="Hepsi Kapalı", width=80, command=self._all_off).grid(row=0, column=1, padx=4)
+
+        # --- YAZMA MENÜSÜ TAMAMEN DEVRE DIŞI BIRAKMA ---
+        # Eğer hiç yazılabilir pin yoksa (toggle ve slider yoksa), pattern ve toplu butonları devre dışı bırak
+        if not self.toggle_widgets and not self.slider_widgets:
+            # Pattern switch'leri ve entry'leri devre dışı bırak
+            for sw in pattern_switches.values():
+                sw.configure(state="disabled")
+            seq_entry.configure(state="disabled")
+            blink_entry.configure(state="disabled")
+            all_entry.configure(state="disabled")
+            # Hepsi Açık/Kapalı butonlarını devre dışı bırak
+            for child in single_frame.winfo_children():
+                try:
+                    child.configure(state="disabled")
+                except Exception:
+                    pass
 
     # ---------------- Pin Mode Config ----------------
     def _apply_pin_modes(self):

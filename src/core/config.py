@@ -11,7 +11,6 @@ def get_config_path():
     else:
         base_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(base_dir, "config.json")
-    print(f"Config dosyası yolu: {config_path}")  # Debug için
     return config_path
 
 CONFIG_FILE = get_config_path()
