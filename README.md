@@ -1,44 +1,56 @@
-# FNSS - Arduino Pin Kontrol Sistemi
+# FNSS - Arduino Pin Kontrol ve İzleme Uygulaması
 
-FNSS (Flexible Network Sensor System), Arduino pinlerini kontrol etmek ve okumak için geliştirilmiş modern bir Python uygulamasıdır.
+FNSS stajımda geliştirmiş olduğum bu proje, Arduino tabanlı projelerde dijital ve analog pinlerin kolayca kontrol edilmesini ve izlenmesini sağlayan modern bir masaüstü uygulamasıdır. Kullanıcı dostu arayüzüyle pinleri anlık olarak yönetebilir, okuma/yazma işlemleri yapabilir ve otomatik patternler uygulayabilirsiniz.
 
 ## 🚀 Özellikler
 
-### 🔍 Otomatik Port Tarama
-- **Akıllı Port Algılama**: Bilgisayardaki tüm COM portlarını otomatik tarar
-- **Arduino Test Mesajı**: "TEST" mesajı göndererek Arduino varlığını doğrular
-- **Otomatik Bağlantı**: İlk çalışan Arduino portuna otomatik bağlanır
-- **Gerçek Zamanlı Durum**: Bağlantı durumunu canlı olarak gösterir
+### 🔌 Pin Kontrolü
+- **Dijital Pinler (2-13):** Her pin için aç/kapat toggle anahtarı
+- **PWM Pinler (3, 5, 6, 9, 10, 11):** 0-255 arası hassas PWM kontrolü
+- **Analog Pinler (A0-A5):** Hem dijital hem analog modda kullanım
+- **Anlık Görsel Geri Bildirim:** Toggle butonları canlı renk güncellemesi (Yeşil: Açık, Kırmızı: Kapalı)
 
-### 📝 Yazma Modu
-- **Dijital Pin Kontrolü**: Pin 2-13 arası dijital çıkış kontrolü
-- **PWM Kontrolü**: Pin 3, 5, 6, 9, 10, 11 için 0-255 arası PWM kontrolü
-- **Analog Pin Kontrolü**: A0-A5 pinleri için dijital çıkış kontrolü
-- **Gelişmiş Patternler**: 
-  - Sıralı yak → sıralı söndür
-  - Sıralı yak-söndür döngüsü
-  - Hepsini yak → hepsini söndür
-- **Global Mod Kontrolü**: Yazma/Okuma modu arası geçiş
-- **Gerçek Zamanlı Görsel Geri Bildirim**: Pin durumlarını renkli göstergelerle takip
+### 📊 Gerçek Zamanlı İzleme
+- **Dijital Okuma:** Pin durumlarını renkli göstergelerle takip et
+- **Analog Okuma:** A0-A5 pinlerinden 0-1023 arası değerleri anlık görüntüle
+- **Özelleştirilebilir Okuma Hızı:** Dijital ve analog okuma için ayrı ayrı zamanlama
+- **Otomatik Senkronizasyon:** Arduino'dan gelen yanıtlarla görsel durumlar senkronize
 
-### 📖 Okuma Modu
-- **Dijital Pin Okuma**: Pin 2-13'ten dijital değerleri okuma (0/1)
-- **Analog Pin Okuma**: A0-A5 pinlerinden analog değerleri okuma (0-1023)
-- **Görsel Durum Göstergeleri**: LED benzeri renkli noktalar
-- **Otomatik Okuma Döngüleri**: Sürekli veri akışı
+### 🎭 Otomatik Patternler
+- **Sıralı Pattern:** Pinleri sırayla aç/kapat (dalga efekti)
+- **Blink Pattern:** Her pin için sırayla aç-kapat (sıralı yanıp sönme)
+- **Hepsi Pattern:** Tüm pinleri aynı anda aç/kapat (senkronize yanıp sönme)
+- **Özelleştirilebilir Hız:** Her pattern için ayrı ayrı zamanlama ayarı
+- **Anlık Kontrol:** "Hepsi Açık" ve "Hepsi Kapalı" butonları ile toplu kontrol
 
-### ⚙️ Konfigürasyon Modu
-- **Seri Port Ayarları**: Port, baudrate, timeout ayarları
-- **Uygulama Ayarları**: Tema, otomatik bağlantı
-- **Bağlantı Testi**: Seri port bağlantısını test etme
-- **Ayarları Kaydetme**: JSON formatında konfigürasyon saklama
+### ⚙️ Konfigürasyon Sistemi
+- **Pin Modları:** Her pin için INPUT/OUTPUT/PASIF mod seçimi
+- **Pin Türleri:** Digital/PWM (dijital pinler), Analog/Digital (analog pinler)
+- **Toplu Ayarlar:** "Tümü Okuma", "Tümü Yazma" butonları
+- **Varsayılana Döndür:** Tek tıkla fabrika ayarlarına sıfırlama
+- **Otomatik Kaydetme:** Değişiklikler anında kaydedilir
 
-## 🛠️ Kurulum
+### 🔧 Serial Haberleşme
+- **Otomatik Port Bulma:** Arduino portunu otomatik tespit
+- **Manuel Bağlantı:** İstenilen port ve baudrate ile bağlantı
+- **Serial Monitor:** Gönderilen/alınan mesajları canlı izleme
+- **Mesaj Geçmişi:** Serial monitör açıldığında önceki mesaj sayılarını gösterme
+- **Bağlantı Durumu:** Gerçek zamanlı bağlantı durumu takibi
 
-### Gereksinimler
-- Python 3.7+
-- Arduino Uno/Nano (veya uyumlu)
-- USB kablosu
+### 🎨 Modern Arayüz
+- **CustomTkinter:** Modern, güzel görünümlü arayüz
+- **Responsive Tasarım:** Pencere boyutuna uyumlu layout
+- **Renk Kodlaması:** Mesaj türlerine göre renkli gösterim
+- **Otomatik Kaydırma:** Yeni mesajlar için otomatik scroll
+- **Zaman Damgaları:** İsteğe bağlı zaman damgası gösterimi
+
+## 📋 Gereksinimler
+
+### Sistem Gereksinimleri
+- **Python:** 3.7 veya üzeri
+- **İşletim Sistemi:** Windows, macOS, Linux
+- **Arduino:** Uno, Nano veya uyumlu board
+- **Bağlantı:** USB kablosu
 
 ### Python Paketleri
 ```bash
@@ -46,199 +58,142 @@ pip install customtkinter
 pip install pyserial
 ```
 
-### Arduino Kodu
-Arduino'ya aşağıdaki kodu yükleyin:
+## 🛠️ Kurulum
 
-```cpp
-// Arduino pin kontrol kodu
-// Pin 2-13: Dijital I/O
-// Pin 3,5,6,9,10,11: PWM destekli
-// A0-A5: Analog okuma
-
-const int DIGITAL_PINS[] = {2,3,4,5,6,7,8,9,10,11,12,13};
-const int PWM_PINS[] = {3,5,6,9,10,11};
-const int ANALOG_PINS[] = {A0,A1,A2,A3,A4,A5};
-
-void setup() {
-  Serial.begin(9600);
-  
-  // Tüm dijital pinleri OUTPUT olarak ayarla
-  for(int i = 0; i < 12; i++) {
-    pinMode(DIGITAL_PINS[i], OUTPUT);
-  }
-}
-
-void loop() {
-  if(Serial.available()) {
-    String command = Serial.readStringUntil('\n');
-    command.trim();
-    
-    // Dijital pin kontrolü: "pin,state"
-    if(command.indexOf(',') > 0 && !command.startsWith("PWM") && !command.startsWith("MODE")) {
-      int commaIndex = command.indexOf(',');
-      int pin = command.substring(0, commaIndex).toInt();
-      int state = command.substring(commaIndex + 1).toInt();
-      
-      if(pin >= 2 && pin <= 13) {
-        digitalWrite(pin, state);
-        Serial.print("LED ");
-        Serial.print(pin);
-        Serial.println(state ? " ON" : " OFF");
-      }
-    }
-    
-    // PWM kontrolü: "PWM pin,value"
-    else if(command.startsWith("PWM ")) {
-      command = command.substring(4);
-      int commaIndex = command.indexOf(',');
-      int pin = command.substring(0, commaIndex).toInt();
-      int value = command.substring(commaIndex + 1).toInt();
-      
-      if(pin >= 2 && pin <= 13) {
-        analogWrite(pin, value);
-        Serial.print("PWM ");
-        Serial.print(pin);
-        Serial.print(": ");
-        Serial.println(value);
-      }
-    }
-    
-    // Pin modu değiştirme: "MODE pin,mode"
-    else if(command.startsWith("MODE ")) {
-      command = command.substring(5);
-      int commaIndex = command.indexOf(',');
-      int pin = command.substring(0, commaIndex).toInt();
-      int mode = command.substring(commaIndex + 1).toInt();
-      
-      if(pin >= 2 && pin <= 13) {
-        pinMode(pin, mode ? OUTPUT : INPUT);
-      }
-    }
-    
-    // Durum sorgusu: "STAT"
-    else if(command == "STAT") {
-      for(int i = 0; i < 12; i++) {
-        int pin = DIGITAL_PINS[i];
-        int state = digitalRead(pin);
-        int mode = (pin >= 2 && pin <= 13) ? 1 : 0; // Basitleştirilmiş
-        Serial.print(pin);
-        Serial.print(":");
-        Serial.print(state);
-        Serial.print(":");
-        Serial.print(mode);
-        if(i < 11) Serial.print(",");
-      }
-      Serial.println();
-    }
-    
-    // Dijital okuma: "DIG"
-    else if(command == "DIG") {
-      for(int i = 0; i < 12; i++) {
-        int pin = DIGITAL_PINS[i];
-        int state = digitalRead(pin);
-        Serial.print("D");
-        Serial.print(pin);
-        Serial.print(":");
-        Serial.print(state);
-        if(i < 11) Serial.print(",");
-      }
-      Serial.println();
-    }
-    
-    // Analog okuma: "ANA"
-    else if(command == "ANA") {
-      for(int i = 0; i < 6; i++) {
-        int value = analogRead(ANALOG_PINS[i]);
-        Serial.print("A");
-        Serial.print(i);
-        Serial.print(":");
-        Serial.print(value);
-        if(i < 5) Serial.print(",");
-      }
-      Serial.println();
-    }
-  }
-}
+### 1. Projeyi İndirin
+```bash
+git clone https://github.com/ahmetrft/FNSS.git
+cd FNSS
 ```
 
-## 🎯 Kullanım
+### 2. Gerekli Paketleri Yükleyin
+```bash
+pip install -r requirements.txt
+```
 
-### Uygulamayı Başlatma
+### 3. Arduino Kodunu Yükleyin
+- `src/arduino_codes/test_real/Test_real.ino` dosyasını Arduino IDE'de açın
+- Arduino board'unuza yükleyin
+- USB ile bilgisayara bağlayın
+
+### 4. Uygulamayı Başlatın
 ```bash
 python src/main.py
 ```
 
-### Ana Menü
-1. **Okuma Modu**: Pin durumlarını okumak için
-2. **Yazma Modu**: Pinleri kontrol etmek için  
-3. **Konfigürasyon Modu**: Ayarları değiştirmek için
+## 🎮 Kullanım Kılavuzu
 
-### Yazma Modu Kullanımı
-- **Global Mod Butonu**: Yazma/Okuma modu arası geçiş
-- **Dijital Switch'ler**: Pin 2-13 için açma/kapama
-- **PWM Slider'lar**: Pin 3,5,6,9,10,11 için 0-255 arası kontrol
-- **Pattern Butonları**: Otomatik pattern çalıştırma
-- **Hepsini Yak/Söndür**: Tüm pinleri aynı anda kontrol
+### Ana Pencere
+Uygulama başlatıldığında ana pencere açılır. Buradan diğer modüllere erişebilirsiniz:
+- **Kontrol Modu:** Pin kontrolü ve patternler
+- **Konfigürasyon Modu:** Pin ayarları
+- **Serial Monitor:** Haberleşme izleme
 
-### Okuma Modu Kullanımı
-1. **Tüm Pinleri INPUT Yap**: Dijital pinleri okuma moduna alır
-2. **Dijital Okuma Başlat**: Pin 2-13'ten dijital değerleri okur
-3. **Analog Okuma Başlat**: A0-A5 pinlerinden analog değerleri okur
-- **Yeşil nokta**: Pin HIGH (1)
-- **Kırmızı nokta**: Pin LOW (0)
+### Kontrol Modu
+1. **Pin Kontrolü:** Toggle butonları ile pinleri aç/kapat
+2. **PWM Kontrolü:** Slider ile PWM değerini ayarla (0-255)
+3. **Patternler:** 
+   - Sıralı: Pinleri sırayla aç/kapat
+   - Blink: Her pin için sırayla aç-kapat
+   - Hepsi: Tüm pinleri aynı anda aç/kapat
+4. **Okuma:** Dijital ve analog pinleri otomatik oku
 
 ### Konfigürasyon Modu
-- **Seri Port**: Arduino'nun bağlı olduğu port
-- **Baudrate**: İletişim hızı (genellikle 9600)
-- **Tema**: Uygulama görünümü
-- **Bağlantı Testi**: Seri port bağlantısını test etme
+1. **Pin Aktif/Pasif:** Her pin için aktif/pasif toggle
+2. **Pin Modu:** INPUT/OUTPUT seçimi
+3. **Pin Türü:** Digital/PWM (dijital), Analog/Digital (analog)
+4. **Toplu İşlemler:** Tüm pinleri aynı anda ayarla
+
+### Serial Monitor
+1. **Port Seçimi:** Arduino portunu seç
+2. **Bağlantı:** Connect butonu ile bağlan
+3. **Mesaj İzleme:** Gönderilen/alınan mesajları gör
+4. **Mesaj Gönderme:** Manuel mesaj gönder
 
 ## 📁 Proje Yapısı
 
 ```
 FNSS/
 ├── src/
-│   ├── main.py              # Ana uygulama
-│   ├── gui/
-│   │   ├── main_window.py   # Ana pencere
-│   │   ├── write_menu.py    # Yazma modu
-│   │   ├── read_menu.py     # Okuma modu
-│   │   └── config_menu.py   # Konfigürasyon modu
-│   ├── core/                # Çekirdek modüller
-│   └── utils/               # Yardımcı fonksiyonlar
-├── tests/                   # Test dosyaları
-├── Blink/                   # Arduino örnek kodları
-└── README.md               # Bu dosya
+│   ├── main.py                 # Ana uygulama başlatıcı
+│   ├── gui/                    # Arayüz modülleri
+│   │   ├── main_window.py      # Ana pencere
+│   │   ├── control_menu.py     # Kontrol modu
+│   │   ├── config_menu.py      # Konfigürasyon modu
+│   │   └── serial_monitor.py   # Serial monitör
+│   ├── core/                   # Çekirdek işlevler
+│   │   ├── config.py           # Konfigürasyon yönetimi
+│   │   ├── pin_manager.py      # Pin işlemleri
+│   │   ├── serial_manager.py   # Serial haberleşme
+│   │   ├── message_router.py   # Mesaj yönlendirme
+│   │   └── scheduler.py        # Zamanlanmış görevler
+│   ├── utils/                  # Yardımcı fonksiyonlar
+│   │   └── logger.py           # Loglama
+│   ├── assets/                 # Uygulama varlıkları
+│   │   ├── logo.png            # Uygulama logosu
+│   │   └── indir.ico           # Uygulama ikonu
+│   └── arduino_codes/          # Arduino kodları
+│       ├── test_real/          # Gerçek Arduino kodu
+│       └── test_sim/           # Simülasyon kodu
+├── config.json                 # Konfigürasyon dosyası
+├── requirements.txt            # Python bağımlılıkları
+├── LICENSE                     # Lisans dosyası
+└── README.md                   # Bu dosya
 ```
 
-## 🔧 Sorun Giderme
+## 🔧 Teknik Detaylar
 
-### Seri Port Bağlantı Sorunları
-1. Arduino'nun doğru porta bağlı olduğundan emin olun
-2. Konfigürasyon modunda bağlantı testini çalıştırın
-3. Arduino IDE'de port seçimini kontrol edin
-4. USB kablosunu değiştirmeyi deneyin
+### Mimari
+- **Singleton Pattern:** SerialManager, PinManager, Scheduler
+- **Observer Pattern:** Event-driven mesaj sistemi
+- **Threading:** Arka plan işlemleri için thread kullanımı
+- **Queue System:** Thread-safe mesaj kuyrukları
 
-### PWM Pin Sorunları
-- Sadece pin 3, 5, 6, 9, 10, 11 PWM destekler
-- Diğer pinler sadece dijital çıkış olarak çalışır
+### Haberleşme Protokolü
+- **Komut Formatı:** `PIN,STATE` (örn: `7,1`)
+- **PWM Komutu:** `PWM PIN,VALUE` (örn: `PWM 9,128`)
+- **Mod Komutu:** `MODE PIN,MODE` (örn: `MODE 7,1`)
+- **Toplu Komut:** `ALL STATE` (örn: `ALL 1`)
+- **Okuma Komutları:** `DIG`, `ANA`, `STAT`
 
-### Pattern Çalışmıyor
-- Global modun "YAZMA MODU"nda olduğundan emin olun
-- Arduino kodunun doğru yüklendiğini kontrol edin
+### Güvenlik ve Hata Yönetimi
+- **Bağlantı Kontrolü:** Otomatik bağlantı testi
+- **Hata Yakalama:** Try-catch blokları ile güvenli işlemler
+- **Timeout Mekanizması:** Yanıt gelmeyen komutlar için timeout
+- **Graceful Shutdown:** Uygulama kapatılırken temiz kapanma
 
-## 📝 Lisans
+## 🐛 Bilinen Sorunlar ve Çözümler
 
-Bu proje MIT lisansı altında lisanslanmıştır. Ayrıntılar için LICENSE dosyasına bakınız.
+### Arduino Bağlantı Sorunları
+- **Port Bulunamıyor:** Arduino IDE'den port numarasını kontrol edin
+- **Baudrate Uyumsuzluğu:** Arduino kodunda 9600 baudrate kullanın
+- **Driver Sorunları:** Arduino driver'larını güncelleyin
+
+### Python Paket Sorunları
+- **CustomTkinter Hatası:** `pip install --upgrade customtkinter`
+- **PySerial Hatası:** `pip install --upgrade pyserial`
 
 ## 🤝 Katkıda Bulunma
 
-1. Fork yapın
+1. Bu repository'yi fork edin
 2. Feature branch oluşturun (`git checkout -b feature/AmazingFeature`)
-3. Commit yapın (`git commit -m 'Add some AmazingFeature'`)
-4. Push yapın (`git push origin feature/AmazingFeature`)
-5. Pull Request açın
+3. Değişikliklerinizi commit edin (`git commit -m 'Add some AmazingFeature'`)
+4. Branch'inizi push edin (`git push origin feature/AmazingFeature`)
+5. Pull Request oluşturun
 
-## 📞 İletişim
+## 📝 Lisans
 
-Sorularınız için issue açabilir veya pull request gönderebilirsiniz. 
+Bu proje MIT lisansı ile lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakınız.
+
+## 👨‍💻 Geliştirici
+
+**Ahmet Rıfat Karademir**  
+- 📧 E-posta: deepyellow18@gmail.com  
+- 🐙 GitHub: [@ahmetrft](https://github.com/ahmetrft)
+- 🔗 LinkedIn: [Ahmet Rıfat Karademir](https://www.linkedin.com/in/ahmetrifatkarademir)
+
+🙏 Teşekkürler
+- **FNSS** şirketine bu projeyi geliştirme fırsatı verdiği için##
+---
+
+⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!

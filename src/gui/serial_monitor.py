@@ -24,9 +24,10 @@ class SerialMonitor(ctk.CTkToplevel):
         self.show_sent = ctk.BooleanVar(value=True)
         self.show_received = ctk.BooleanVar(value=True)
         
-        # Message counters
-        self.sent_count = 0
-        self.received_count = 0
+        # Message counters - serial manager'dan mevcut değerleri al
+        stats = serial_manager.get_stats()
+        self.sent_count = stats.get('sent_count', 0)
+        self.received_count = stats.get('received_count', 0)
         
         # Register callbacks
         serial_manager.add_message_callback(self.on_message_received)
@@ -35,6 +36,14 @@ class SerialMonitor(ctk.CTkToplevel):
         self._build_layout()
         bring_to_front_and_center(self)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        # Mevcut sayaçları göster
+        self.update_counter()
+        
+        # Serial monitör açıldı mesajı
+        self.log_message("Sistem", "Serial monitör açıldı", "info")
+        if self.sent_count > 0 or self.received_count > 0:
+            self.log_message("Sistem", f"Önceki oturumdan {self.sent_count} gönderilen, {self.received_count} alınan mesaj", "info")
         
         # Start polling for received messages
         self.poll_serial()
@@ -267,8 +276,10 @@ class SerialMonitor(ctk.CTkToplevel):
     def on_message_received(self, source: str, message: str):
         """Serial manager'dan gelen mesajları işle"""
         if source == "Alınan" and self.show_received.get():
+            self.increment_received()
             self.log_message("Alınan", message, "received")
         elif source == "Gönderilen" and self.show_sent.get():
+            self.increment_sent()
             self.log_message("Gönderilen", message, "sent")
         elif source in ["Sistem", "Hata"]:
             self.log_message(source, message, "info" if source == "Sistem" else "error")
@@ -305,7 +316,7 @@ class SerialMonitor(ctk.CTkToplevel):
         """Poll for received messages from the serial thread"""
         serial_manager.poll_messages()
         
-        # Update counters from manager stats
+        # Update counters from manager stats (senkronizasyon için)
         stats = serial_manager.get_stats()
         self.sent_count = stats['sent_count']
         self.received_count = stats['received_count']

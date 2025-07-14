@@ -92,7 +92,11 @@ class ConfigMenu(ctk.CTkToplevel):
                     else:
                         type_opt.configure(values=base_values)
 
-                mode_var.trace_add("write", lambda *_: _on_dig_mode_change())
+                def _dig_wrapper(*_):
+                    _on_dig_mode_change()
+                    self._persist_config()
+
+                mode_var.trace_add("write", _dig_wrapper)
             else:  # Analog pin
                 base_values = ["analog", "digital"]
 
@@ -119,7 +123,11 @@ class ConfigMenu(ctk.CTkToplevel):
                         if type_var.get() not in ("analog", "digital"):
                             type_var.set("analog")
 
-                mode_var.trace_add("write", lambda *_: _on_mode_change())
+                def _analog_wrapper(*_):
+                    _on_mode_change()
+                    self._persist_config()
+
+                mode_var.trace_add("write", _analog_wrapper)
                 _on_mode_change()
 
             # Aktif/pasif switch callback
@@ -137,7 +145,11 @@ class ConfigMenu(ctk.CTkToplevel):
                     vars_d["mode_opt"].configure(state="disabled")
                     vars_d["type_opt"].configure(state="disabled")
 
-            active_var.trace_add("write", _on_active_change)
+            def _active_wrapper(*_):
+                _on_active_change()
+                self._persist_config()
+
+            active_var.trace_add("write", _active_wrapper)
 
             # Başlangıçta pasifse option menüleri disable
             if not active_var.get():
@@ -172,8 +184,8 @@ class ConfigMenu(ctk.CTkToplevel):
 
         save_button = ctk.CTkButton(
             button_frame,
-            text="Kaydet",
-            command=self.save_settings,
+            text="Uygula",
+            command=self.apply_settings,
             fg_color="#34C759",
             width=120
         )
@@ -245,37 +257,46 @@ class ConfigMenu(ctk.CTkToplevel):
         except Exception as e:
             self.test_label.configure(text=f"✗ Bağlantı hatası: {str(e)}", text_color="#FF3B30")
 
-    def save_settings(self):
-        """Ayarları kaydeder."""
+    # ----------------- Persist Helpers -----------------
+    def _collect_pins_config(self):
+        """pin_widgets içeriğini sözlük formatında döndürür"""
+        pins_cfg = {}
+        for pin, vars_ in self.pin_widgets.items():
+            if not vars_["active"].get():
+                mode_val = "pas"
+            else:
+                mode_val = vars_["mode"].get()
+
+            t_val = vars_["type"].get()
+            # Analog pinler OUTPUT ise type zorunlu olarak 'digital'
+            if not pin.isdigit() and mode_val == "output":
+                t_val = "digital"
+
+            pins_cfg[pin] = {
+                "mode": mode_val,
+                "type": t_val
+            }
+        return pins_cfg
+
+    def _persist_config(self):
+        """Anlık widget değerlerini CONFIG'e ve diske kaydeder"""
+        from core import config as cfg
+        self.config_data["pins"] = self._collect_pins_config()
+        cfg.CONFIG = self.config_data
+        save_config()
+
+    # ----------------- Apply Button -----------------
+    def apply_settings(self):
+        """Mevcut konfigürasyonu diske kaydeder ve Arduino'ya uygular."""
         try:
-            # Pin ayarlarını topla
-            pins_cfg = {}
-            for pin, vars_ in self.pin_widgets.items():
-                if not vars_["active"].get():
-                    mode_val = "pas"
-                else:
-                    mode_val = vars_["mode"].get()
-
-                t_val = vars_["type"].get()
-                # Analog pinler OUTPUT ise type zorunlu olarak 'digital'
-                if not pin.isdigit() and mode_val == "output":
-                    t_val = "digital"
-
-                pins_cfg[pin] = {
-                    "mode": mode_val,
-                    "type": t_val
-                }
-            self.config_data["pins"] = pins_cfg
-
-            from core import config as cfg
-            cfg.CONFIG = self.config_data
+            # Önce konfigürasyonu kalıcı hale getir
+            self._persist_config()
 
             # Bağlantı kontrolü: Arduino seri bağlantısı yoksa ayarları dosyaya kaydedip uyarı göster
             from core.serial_manager import serial_manager
             if not serial_manager.is_connected:
-                # Önce ayarları dosyaya yazalım
-                save_config()
-
+                # Uygulanamadı, sadece kaydedildi bildir
+                
                 warn_win = ctk.CTkToplevel(self)
                 warn_win.title("Bağlantı Yok")
                 warn_win.geometry("340x150")
@@ -287,11 +308,9 @@ class ConfigMenu(ctk.CTkToplevel):
                 ctk.CTkButton(warn_win, text="Tamam", command=warn_win.destroy).pack(pady=10)
                 return
 
-            # Dosyaya yazmadan önce pin ayarlarını Arduino'ya uygula
+            # Arduino'ya pin modlarını uygula
             pin_manager.apply_config(self.config_data)
 
-            save_config()
-            
             # Başarı mesajı göster – uygulamayı kapatmaya gerek yok
             info_win = ctk.CTkToplevel(self)
             info_win.title("Başarılı")
@@ -299,8 +318,8 @@ class ConfigMenu(ctk.CTkToplevel):
             info_win.resizable(False, False)
             bring_to_front_and_center(info_win)
 
-            ctk.CTkLabel(info_win, text="✓ Ayarlar kaydedildi!", font=("Arial", 16, "bold")).pack(pady=18)
-            ctk.CTkLabel(info_win, text="Değişiklikler Arduino'ya uygulandı.", font=("Arial", 12)).pack(pady=4)
+            ctk.CTkLabel(info_win, text="✓ Ayarlar uygulandı!", font=("Arial", 16, "bold")).pack(pady=18)
+            ctk.CTkLabel(info_win, text="Değişiklikler Arduino'ya gönderildi.", font=("Arial", 12)).pack(pady=4)
             ctk.CTkButton(info_win, text="Tamam", command=info_win.destroy).pack(pady=10)
             
         except Exception as e:
@@ -317,26 +336,36 @@ class ConfigMenu(ctk.CTkToplevel):
             ctk.CTkButton(error_window, text="Tamam", command=error_window.destroy).pack(pady=10)
 
     def reset_settings(self):
-        """Ayarları varsayılan değerlere döndürür."""
+        """Ayarları varsayılan değerlere döndürür ve tüm pinleri aktif yapar."""
         import copy
         from core import config as cfg
-        from core.config import load_config
-        old_config = load_config()
+        from core.config import DIGITAL_PINS, ANALOG_PINS, PWM_DIGITAL_PINS
+        old_config = cfg.load_config()
         last_port = old_config.get("last_successful_port")
         self.config_data = copy.deepcopy(cfg.DEFAULT_CONFIG)
         if last_port:
             self.config_data["last_successful_port"] = last_port
 
-        # Reset pin widgets
+        # Tüm pinleri aktif ve default moda getir
         for pin, v in self.pin_widgets.items():
-            d = self.config_data["pins"].get(pin, {})
-            v["active"].set(d.get("mode", "output") != "pas")
-            v["mode"].set(d.get("mode", "output"))
-            v["type"].set(d.get("type", "digital"))
+            # Dijital pinler
+            if pin.isdigit():
+                v["active"].set(True)
+                v["mode"].set("output")
+                if int(pin) in PWM_DIGITAL_PINS:
+                    v["type"].set("pwm")
+                else:
+                    v["type"].set("digital")
+            else:  # Analog pinler
+                v["active"].set(True)
+                v["mode"].set("input")
+                v["type"].set("analog")
+            v["mode_opt"].configure(state="normal")
+            v["type_opt"].configure(state="normal")
 
         # Global CONFIG'i güncelle ve kaydet
         cfg.CONFIG = self.config_data
-        save_config()
+        cfg.save_config()
         
         # Bilgi mesajı göster
         info_window = ctk.CTkToplevel(self)
@@ -348,7 +377,7 @@ class ConfigMenu(ctk.CTkToplevel):
         ctk.CTkLabel(info_window, text="✓ Ayarlar sıfırlandı!", font=("Arial", 16, "bold")).pack(pady=20)
         ctk.CTkLabel(info_window, text="Varsayılan ayarlar yüklendi.", font=("Arial", 12)).pack(pady=10)
         
-        ctk.CTkButton(info_window, text="Tamam", command=info_window.destroy).pack(pady=10) 
+        ctk.CTkButton(info_window, text="Tamam", command=info_window.destroy).pack(pady=10)
 
     # ---- Helper methods ----
 
@@ -371,7 +400,9 @@ class ConfigMenu(ctk.CTkToplevel):
     def set_all_read_mode(self):
         """Tüm pinleri INPUT yap."""
         self._apply_to_all_pins(mode="input", pwm_as_digital=True, active=True)
+        self._persist_config()
 
     def set_all_write_mode(self):
         """Tüm dijital/PWM pinlerini OUTPUT yap."""
-        self._apply_to_all_pins(mode="output", pwm_as_digital=False, active=True) 
+        self._apply_to_all_pins(mode="output", pwm_as_digital=False, active=True)
+        self._persist_config() 

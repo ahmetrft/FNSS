@@ -64,10 +64,14 @@ class MessageRouter:
             val_part = val_part.strip()
             if pin_part.isdigit():
                 pin = int(pin_part)
+                up_val = val_part.upper()
                 if val_part.isdigit():
                     value = int(val_part)
+                elif up_val in ("ON", "OFF"):
+                    value = 1 if up_val == "ON" else 0
                 else:
-                    value = 1 if val_part.upper() == "ON" else 0
+                    # IN, OUT, PAS gibi mod değişim mesajlarını görmezden gel
+                    return
                 self._dispatch("pin_state", {"pin": pin, "value": value})
             return
         # Dijital okuma: "D2:1,D3:0,..."
