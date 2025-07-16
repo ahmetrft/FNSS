@@ -1,6 +1,13 @@
 # FNSS - Arduino Pin Kontrol ve İzleme Uygulaması
 
-FNSS stajımda geliştirmiş olduğum bu proje, Arduino tabanlı projelerde dijital ve analog pinlerin kolayca kontrol edilmesini ve izlenmesini sağlayan modern bir masaüstü uygulamasıdır. Kullanıcı dostu arayüzüyle pinleri anlık olarak yönetebilir, okuma/yazma işlemleri yapabilir ve otomatik patternler uygulayabilirsiniz.
+![Python](https://img.shields.io/badge/Python-3.7%2B-blue)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
+## Proje Tanımı
+
+Bu repo, Arduino tabanlı projelerde dijital ve analog pinlerin merkezi bir GUI üzerinden yönetilmesini sağlayan açık kaynaklı bir masaüstü uygulamasıdır. Kullanıcı dostu arayüzü sayesinde pinlerin anlık durumu izlenebilir, yazma/okuma işlemleri gerçekleştirilebilir ve otomatikleştirilmiş desenler (pattern) uygulanabilir.
+
+Bu proje, **FNSS Savunma Sistemleri A.Ş.** bünyesinde staj yaptığım süre boyunca tarafımdan (@ahmetrft) geliştirilmiştir.
 
 ## 🚀 Özellikler
 
@@ -44,20 +51,6 @@ FNSS stajımda geliştirmiş olduğum bu proje, Arduino tabanlı projelerde diji
 - **Otomatik Kaydırma:** Yeni mesajlar için otomatik scroll
 - **Zaman Damgaları:** İsteğe bağlı zaman damgası gösterimi
 
-## 📋 Gereksinimler
-
-### Sistem Gereksinimleri
-- **Python:** 3.7 veya üzeri
-- **İşletim Sistemi:** Windows, macOS, Linux
-- **Arduino:** Uno, Nano veya uyumlu board
-- **Bağlantı:** USB kablosu
-
-### Python Paketleri
-```bash
-pip install customtkinter
-pip install pyserial
-```
-
 ## 🛠️ Kurulum
 
 ### 1. Projeyi İndirin
@@ -85,6 +78,10 @@ python src/main.py
 
 ### Ana Pencere
 Uygulama başlatıldığında ana pencere açılır. Buradan diğer modüllere erişebilirsiniz:
+
+![Ana Menü](src/report/screenshots/ana_menu.png)
+_Ana menü ekranı_
+
 - **Kontrol Modu:** Pin kontrolü ve patternler
 - **Konfigürasyon Modu:** Pin ayarları
 - **Serial Monitor:** Haberleşme izleme
@@ -98,17 +95,70 @@ Uygulama başlatıldığında ana pencere açılır. Buradan diğer modüllere e
    - Hepsi: Tüm pinleri aynı anda aç/kapat
 4. **Okuma:** Dijital ve analog pinleri otomatik oku
 
+![Kontrol Modu](src/report/screenshots/kontrol_modu.png)
+_Kontrol modu genel görünüm_
+
+![Tümü Okuma](src/report/screenshots/kontrol_modu_tumuokuma.png)
+_Tüm pinleri okuma işlemi_
+
+![Tümü Yazma](src/report/screenshots/kontrol_modu_tumuyazma.png)
+_Tüm pinleri yazma işlemi_
+
+![Kullanıcı Ayarı](src/report/screenshots/kontrol_modu_kullaniciayari.png)
+_Kullanıcıya özel pin ayarı_
+
 ### Konfigürasyon Modu
 1. **Pin Aktif/Pasif:** Her pin için aktif/pasif toggle
 2. **Pin Modu:** INPUT/OUTPUT seçimi
 3. **Pin Türü:** Digital/PWM (dijital), Analog/Digital (analog)
 4. **Toplu İşlemler:** Tüm pinleri aynı anda ayarla
 
+![Konfigürasyon Modu](src/report/screenshots/konfigurasyon_modu.png)
+_Konfigürasyon ekranı_
+
 ### Serial Monitor
 1. **Port Seçimi:** Arduino portunu seç
 2. **Bağlantı:** Connect butonu ile bağlan
 3. **Mesaj İzleme:** Gönderilen/alınan mesajları gör
 4. **Mesaj Gönderme:** Manuel mesaj gönder
+
+![Serial Monitor](src/report/screenshots/seri_monitor.png)
+_Serial monitor genel görünüm_
+
+![Serial Monitor Haberleşme](src/report/screenshots/seri_monitor_haberlesme.png)
+_Aktif veri trafiği örneği_
+
+### Simülasyon ve Proteus
+![Proteus Şeması](src/report/screenshots/proteus_sema.png)
+_Proteus devre şeması_
+
+![Simülasyon Genel](src/report/screenshots/simulasyon.png)
+_Simülasyon genel görünüm_
+
+![Simülasyon Tümü Açık](src/report/screenshots/simulasyon_tumuacik.png)
+_Tüm pinler açık simülasyon_
+
+![Simülasyon Tümü Kapalı](src/report/screenshots/simulasyon_tumukapali.png)
+_Tüm pinler kapalı simülasyon_
+
+### Patternler için Akış Diyagramı
+
+Aşağıda, uygulamada bulunan üç temel patternin (desenin) akış mantığı görselleştirilmiştir:
+
+- **Sıralı Pattern:** Pinler sırayla açılır ve kapanır (dalga efekti)
+
+![Sıralı Pattern](src/report/screenshots/sirali_pattern.gif)
+_Sıralı pattern animasyonu: Pinler sırayla yanar - Sonrasında sırayla söner_
+
+- **Blink Pattern:** Her pin sırayla açılıp kapanır (yanıp sönme)
+
+![Blink Pattern](src/report/screenshots/blink_pattern.gif)
+_Blink pattern animasyonu: Her pin sırayla yanar ve söner_
+
+- **Hepsi Pattern:** Tüm pinler aynı anda açılır/kapanır (senkronize)
+
+![Hepsi Pattern](src/report/screenshots/hepsi_pattern.gif)
+_Hepsi pattern animasyonu: Tüm pinler aynı anda yanar ve söner_
 
 ## 📁 Proje Yapısı
 
@@ -130,37 +180,42 @@ FNSS/
 │   ├── utils/                  # Yardımcı fonksiyonlar
 │   │   └── logger.py           # Loglama
 │   ├── assets/                 # Uygulama varlıkları
-│   │   ├── logo.png            # Uygulama logosu
-│   │   └── indir.ico           # Uygulama ikonu
 │   └── arduino_codes/          # Arduino kodları
 │       ├── test_real/          # Gerçek Arduino kodu
 │       └── test_sim/           # Simülasyon kodu
-├── config.json                 # Konfigürasyon dosyası
+│   └── report/                 # Rapor ve ekran görüntüleri
+│       ├── FNSS Arduino Simülasyon Test Projesi Raporu.docx
+│       ├── FNSS Arduino Simülasyon Test Projesi Raporu.pdf
+│       └── screenshots/        # Ekran görüntüleri ve simülasyon görselleri
+├── build_exe.py                # Derleme scripti
 ├── requirements.txt            # Python bağımlılıkları
 ├── LICENSE                     # Lisans dosyası
 └── README.md                   # Bu dosya
 ```
 
-## 🔧 Teknik Detaylar
+## Teknik Terimler ve Açıklamaları
 
-### Mimari
-- **Singleton Pattern:** SerialManager, PinManager, Scheduler
-- **Observer Pattern:** Event-driven mesaj sistemi
-- **Threading:** Arka plan işlemleri için thread kullanımı
-- **Queue System:** Thread-safe mesaj kuyrukları
+| Terim                | Açıklama                                                                 |
+|----------------------|--------------------------------------------------------------------------|
+| GUI                  | Grafiksel Kullanıcı Arayüzü                                              |
+| Toggle               | Aç/kapat anahtarı (buton)                                                |
+| Pattern              | Otomatik desen (belirli bir sırayla yapılan işlem)                       |
+| Serial Monitor       | Seri port haberleşmesini izleme ve mesaj gönderme aracı                  |
+| PWM                  | Pulse Width Modulation (Darbe Genişlik Modülasyonu)                      |
+| Input/Output (Giriş/Çıkış) | Pinin veri alıp vermesiyle ilgili modlar                        |
+| Baudrate             | Seri iletişimde veri iletim hızı (bit/saniye)                            |
 
-### Haberleşme Protokolü
-- **Komut Formatı:** `PIN,STATE` (örn: `7,1`)
-- **PWM Komutu:** `PWM PIN,VALUE` (örn: `PWM 9,128`)
-- **Mod Komutu:** `MODE PIN,MODE` (örn: `MODE 7,1`)
-- **Toplu Komut:** `ALL STATE` (örn: `ALL 1`)
-- **Okuma Komutları:** `DIG`, `ANA`, `STAT`
+### Haberleşme Komutları
 
-### Güvenlik ve Hata Yönetimi
-- **Bağlantı Kontrolü:** Otomatik bağlantı testi
-- **Hata Yakalama:** Try-catch blokları ile güvenli işlemler
-- **Timeout Mekanizması:** Yanıt gelmeyen komutlar için timeout
-- **Graceful Shutdown:** Uygulama kapatılırken temiz kapanma
+| Komut                | Açıklama                                      | Örnek                |
+|----------------------|-----------------------------------------------|----------------------|
+| `PIN,STATE`          | Dijital pin aç/kapat                          | `7,1`                |
+| `PWM PIN,VALUE`      | PWM pinine değer yaz                          | `PWM 9,128`          |
+| `MODE PIN,MODE`      | Pin modunu ayarla (INPUT/OUTPUT)              | `MODE 7,1`           |
+| `ALL STATE`          | Tüm pinleri aynı anda aç/kapat                | `ALL 1`              |
+| `DIG`                | Dijital pinleri oku                           | `DIG`                |
+| `ANA`                | Analog pinleri oku                            | `ANA`                |
+| `STAT`               | Pin durumunu sorgula                          | `STAT`               |
 
 ## 🐛 Bilinen Sorunlar ve Çözümler
 
@@ -188,13 +243,9 @@ Bu proje MIT lisansı ile lisanslanmıştır. Detaylar için [LICENSE](LICENSE) 
 ## 👨‍💻 Geliştirici
 
 **Ahmet Rıfat Karademir**  
-- 📧 E-posta: deepyellow18@gmail.com  
-- 🐙 GitHub: [@ahmetrft](https://github.com/ahmetrft)
-- 🔗 LinkedIn: [Ahmet Rıfat Karademir](https://www.linkedin.com/in/ahmetrifatkarademir)
+[![E-posta](https://img.shields.io/badge/E--posta-deepyellow18@gmail.com-D14836?logo=gmail&logoColor=white)](mailto:deepyellow18@gmail.com)
+[![GitHub](https://img.shields.io/badge/GitHub-@ahmetrft-181717?logo=github)](https://github.com/ahmetrft)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Ahmet%20Rıfat%20Karademir-0077B5?&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ahmetrifatkarademir)
 
 ## 🙏 Teşekkürler
-- **FNSS** şirketine bu projeyi geliştirme fırsatı verdiği için
-
----
-
-⭐ Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!
+**FNSS Savunma Sistemleri A.Ş.** şirketine bu projeyi geliştirme fırsatı verdiği için
