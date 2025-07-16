@@ -80,6 +80,7 @@ python src/main.py
 Uygulama başlatıldığında ana pencere açılır. Buradan diğer modüllere erişebilirsiniz:
 
 ![Ana Menü](src/report/screenshots/ana_menu.png)
+
 _Ana menü ekranı_
 
 - **Kontrol Modu:** Pin kontrolü ve patternler
@@ -96,15 +97,19 @@ _Ana menü ekranı_
 4. **Okuma:** Dijital ve analog pinleri otomatik oku
 
 ![Kontrol Modu](src/report/screenshots/kontrol_modu.png)
+
 _Kontrol modu genel görünüm_
 
 ![Tümü Okuma](src/report/screenshots/kontrol_modu_tumuokuma.png)
+
 _Tüm pinleri okuma işlemi_
 
 ![Tümü Yazma](src/report/screenshots/kontrol_modu_tumuyazma.png)
+
 _Tüm pinleri yazma işlemi_
 
 ![Kullanıcı Ayarı](src/report/screenshots/kontrol_modu_kullaniciayari.png)
+
 _Kullanıcıya özel pin ayarı_
 
 ### Konfigürasyon Modu
@@ -114,6 +119,7 @@ _Kullanıcıya özel pin ayarı_
 4. **Toplu İşlemler:** Tüm pinleri aynı anda ayarla
 
 ![Konfigürasyon Modu](src/report/screenshots/konfigurasyon_modu.png)
+
 _Konfigürasyon ekranı_
 
 ### Serial Monitor
@@ -123,22 +129,28 @@ _Konfigürasyon ekranı_
 4. **Mesaj Gönderme:** Manuel mesaj gönder
 
 ![Serial Monitor](src/report/screenshots/seri_monitor.png)
+
 _Serial monitor genel görünüm_
 
 ![Serial Monitor Haberleşme](src/report/screenshots/seri_monitor_haberlesme.png)
+
 _Aktif veri trafiği örneği_
 
 ### Simülasyon ve Proteus
 ![Proteus Şeması](src/report/screenshots/proteus_sema.png)
+
 _Proteus devre şeması_
 
 ![Simülasyon Genel](src/report/screenshots/simulasyon.png)
+
 _Simülasyon genel görünüm_
 
 ![Simülasyon Tümü Açık](src/report/screenshots/simulasyon_tumuacik.png)
+
 _Tüm pinler açık simülasyon_
 
 ![Simülasyon Tümü Kapalı](src/report/screenshots/simulasyon_tumukapali.png)
+
 _Tüm pinler kapalı simülasyon_
 
 ### Patternler için Akış Diyagramı
@@ -148,16 +160,19 @@ Aşağıda, uygulamada bulunan üç temel patternin (desenin) akış mantığı 
 - **Sıralı Pattern:** Pinler sırayla açılır ve kapanır (dalga efekti)
 
 ![Sıralı Pattern](src/report/screenshots/sirali_pattern.gif)
+
 _Sıralı pattern animasyonu: Pinler sırayla yanar - Sonrasında sırayla söner_
 
 - **Blink Pattern:** Her pin sırayla açılıp kapanır (yanıp sönme)
 
 ![Blink Pattern](src/report/screenshots/blink_pattern.gif)
+
 _Blink pattern animasyonu: Her pin sırayla yanar ve söner_
 
 - **Hepsi Pattern:** Tüm pinler aynı anda açılır/kapanır (senkronize)
 
 ![Hepsi Pattern](src/report/screenshots/hepsi_pattern.gif)
+
 _Hepsi pattern animasyonu: Tüm pinler aynı anda yanar ve söner_
 
 ## 📁 Proje Yapısı
