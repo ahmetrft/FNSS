@@ -81,7 +81,7 @@ Uygulama başlatıldığında ana pencere açılır. Buradan diğer modüllere e
 
 ![Ana Menü](src/report/screenshots/ana_menu.png)
 
-_Ana menü ekranı_
+_Ana menü genel görünüm_
 
 - **Kontrol Modu:** Pin kontrolü ve patternler
 - **Konfigürasyon Modu:** Pin ayarları
@@ -161,19 +161,14 @@ Aşağıda, uygulamada bulunan üç temel patternin (desenin) akış mantığı 
 
 ![Sıralı Pattern](src/report/screenshots/sirali_pattern.gif)
 
-_Sıralı pattern animasyonu: Pinler sırayla yanar - Sonrasında sırayla söner_
 
 - **Blink Pattern:** Her pin sırayla açılıp kapanır (yanıp sönme)
 
 ![Blink Pattern](src/report/screenshots/blink_pattern.gif)
 
-_Blink pattern animasyonu: Her pin sırayla yanar ve söner_
-
 - **Hepsi Pattern:** Tüm pinler aynı anda açılır/kapanır (senkronize)
 
 ![Hepsi Pattern](src/report/screenshots/hepsi_pattern.gif)
-
-_Hepsi pattern animasyonu: Tüm pinler aynı anda yanar ve söner_
 
 ## 📁 Proje Yapısı
 
