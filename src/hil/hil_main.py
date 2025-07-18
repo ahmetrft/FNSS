@@ -22,7 +22,7 @@ from core.config import get_config_path
 from utils.logger import bring_to_front_and_center
 from PIL import Image, ImageTk
 
-ASSET_PATH = os.path.join(os.path.dirname(__file__), "assets")
+ASSET_PATH = os.path.join(os.path.dirname(__file__), "../assets")
 def get_asset(filename):
     return os.path.join(ASSET_PATH, filename)
 
@@ -350,7 +350,7 @@ class HILSerialManager:
     def _create_log_file(self):
         """Log dosyası oluştur"""
         try:
-            log_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
+            log_dir = os.path.join(os.path.dirname(__file__), "../../logs")
             os.makedirs(log_dir, exist_ok=True)
             
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

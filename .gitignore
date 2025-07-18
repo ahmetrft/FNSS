@@ -9,6 +9,7 @@ __pycache__/
 build/
 dist/
 *.spec
+*.exe
 
 # IDE/editor dosyaları
 .vscode/
@@ -32,3 +33,6 @@ config.json
 # Sanal ortamlar
 venv/
 .env/ 
+
+# build scripti git takibinden çıkar
+build_exe.py 
