@@ -84,7 +84,7 @@ python run_hil.py
 Uygulama çalışırken tüm mesajlar ve olaylar `logs/` klasöründe kaydedilir:
 - Dosya adı: `hil_test_YYYYMMDD_HHMMSS.log`
 - Format: `[HH:MM:SS] KAYNAK: MESAJ`
-- Örnek: `[14:30:15] OLAY: Motor Başlatıldı`
+- Örnek: `[14:30:15] OLAY: Emergency (buton basılı - latch)`
 
 ## Öncelik Kuralları
 

@@ -20,6 +20,11 @@ import threading
 import time
 from core.config import get_config_path
 from utils.logger import bring_to_front_and_center
+from PIL import Image, ImageTk
+
+ASSET_PATH = os.path.join(os.path.dirname(__file__), "assets")
+def get_asset(filename):
+    return os.path.join(ASSET_PATH, filename)
 
 @dataclass
 class VehicleState:
@@ -396,7 +401,7 @@ class HILMainWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("FNSS HIL Test Uygulaması")
-        self.geometry("600x800")
+        self.geometry("750x820")
         self.resizable(False, False)
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
@@ -423,56 +428,59 @@ class HILMainWindow(ctk.CTk):
         self._start_connections()
     
     def _build_interface(self):
-        """Arayüzü oluştur"""
-        # Ana frame
+        # Ana frame'i dikey olarak organize et
         main_frame = ctk.CTkFrame(self)
         main_frame.pack(expand=True, fill="both", padx=10, pady=10)
-        
-        # Grid yapılandırması
         main_frame.grid_columnconfigure(0, weight=1)
-        main_frame.grid_columnconfigure(1, weight=1)
-        main_frame.grid_rowconfigure(1, weight=1)
-        
-        # Bağlantı durumu frame
+        main_frame.grid_rowconfigure(0, weight=0)
+        main_frame.grid_rowconfigure(1, weight=0)
+        main_frame.grid_rowconfigure(2, weight=1)
+        # Bağlantı durumu frame (en üstte)
         self._build_connection_frame(main_frame)
-        
-        # Kontrol frame
-        self._build_control_frame(main_frame)
-        
-        # Görselleştirme frame
+        self.connection_frame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        # Araç durumu (ortada)
         self._build_visualization_frame(main_frame)
-        
-        # Monitör frame
-        self._build_monitor_frame(main_frame)
+        self.visualization_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        # Alt frame: ayarlar ve mesaj monitörü yan yana
+        bottom_frame = ctk.CTkFrame(main_frame)
+        bottom_frame.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
+        bottom_frame.grid_columnconfigure(0, weight=1)
+        bottom_frame.grid_columnconfigure(1, weight=3)
+        bottom_frame.grid_rowconfigure(0, weight=1)
+        # Ayarlar (sol)
+        self._build_control_frame(bottom_frame)
+        self.control_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        # Mesaj monitörü (sağ)
+        self._build_monitor_frame(bottom_frame)
+        self.monitor_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
     
     def _build_connection_frame(self, parent):
-        """Bağlantı durumu frame'ini oluştur"""
         self.connection_frame = ctk.CTkFrame(parent)
-        self.connection_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
-        
-        title = ctk.CTkLabel(self.connection_frame, text="Bağlantı Durumu", font=("Arial", 14, "bold"))
-        title.pack(pady=5)
-        
-        # Sim Arduino durumu
+        self.connection_frame.grid_propagate(False)
+        # Bağlantı butonları (artık solda)
+        button_frame = ctk.CTkFrame(self.connection_frame)
+        button_frame.pack(side="left", padx=10, pady=5, fill="x", expand=True)
+        self.connect_sim_btn = ctk.CTkButton(button_frame, text="Proteus Bağlan", command=self._connect_sim)
+        self.connect_sim_btn.pack(side="top", padx=5, pady=5, fill="x", expand=True)
+        self.connect_real_btn = ctk.CTkButton(button_frame, text="Gerçek Arduino Bağlan", command=self._connect_real)
+        self.connect_real_btn.pack(side="top", padx=5, pady=5, fill="x", expand=True)
+        # Proteus bağlantı durumu (artık sağda)
         sim_frame = ctk.CTkFrame(self.connection_frame)
-        sim_frame.pack(side="left", padx=10, pady=5, fill="x", expand=True)
-        
+        sim_frame.pack(side="right", padx=10, pady=5, fill="x", expand=True)
         ctk.CTkLabel(sim_frame, text="Proteus Arduino:", font=("Arial", 12)).pack()
         self.status_labels['sim'] = ctk.CTkLabel(sim_frame, text="❌ Bağlantı yok", text_color="red")
         self.status_labels['sim'].pack()
-        
-        # Real Arduino durumu
+        # Gerçek Arduino bağlantı durumu (artık sağda)
         real_frame = ctk.CTkFrame(self.connection_frame)
         real_frame.pack(side="right", padx=10, pady=5, fill="x", expand=True)
-        
         ctk.CTkLabel(real_frame, text="Gerçek Arduino:", font=("Arial", 12)).pack()
         self.status_labels['real'] = ctk.CTkLabel(real_frame, text="❌ Bağlantı yok", text_color="red")
         self.status_labels['real'].pack()
-    
+
     def _build_control_frame(self, parent):
         """Kontrol frame'ini oluştur"""
         self.control_frame = ctk.CTkFrame(parent)
-        self.control_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        self.control_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         
         title = ctk.CTkLabel(self.control_frame, text="Ayarlar", font=("Arial", 14, "bold"))
         title.pack(pady=5)
@@ -502,88 +510,96 @@ class HILMainWindow(ctk.CTk):
         
         self.value_labels['fuel_critical'] = ctk.CTkLabel(fuel_frame, text="20%")
         self.value_labels['fuel_critical'].pack()
-        
-        # Bağlantı butonları
-        button_frame = ctk.CTkFrame(self.control_frame)
-        button_frame.pack(fill="x", padx=10, pady=10)
-        
-        self.connect_sim_btn = ctk.CTkButton(button_frame, text="Proteus Bağlan", command=self._connect_sim)
-        self.connect_sim_btn.pack(side="left", padx=5, pady=5, fill="x", expand=True)
-        
-        self.connect_real_btn = ctk.CTkButton(button_frame, text="Gerçek Arduino Bağlan", command=self._connect_real)
-        self.connect_real_btn.pack(side="right", padx=5, pady=5, fill="x", expand=True)
     
     def _build_visualization_frame(self, parent):
-        self.visualization_frame = ctk.CTkFrame(parent, width=260)
-        self.visualization_frame.grid(row=1, column=1, sticky="nsew", padx=5, pady=5)
+        self.visualization_frame = ctk.CTkFrame(parent, width=600, height=420)
+        self.visualization_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
         self.visualization_frame.grid_propagate(False)
+        self.visualization_frame.grid_columnconfigure(0, weight=1, minsize=220)
+        self.visualization_frame.grid_columnconfigure(1, weight=2, minsize=360)
+        self.visualization_frame.grid_rowconfigure(0, weight=0)
+        self.visualization_frame.grid_rowconfigure(1, weight=1)
+        self.visualization_frame.grid_rowconfigure(2, weight=1)
+        self.visualization_frame.grid_rowconfigure(3, weight=1)
         title = ctk.CTkLabel(self.visualization_frame, text="Araç Durumu", font=("Arial", 14, "bold"))
-        title.pack(pady=5)
-        # Motor durumu
-        motor_frame = ctk.CTkFrame(self.visualization_frame)
-        motor_frame.pack(fill="x", padx=10, pady=5)
-        ctk.CTkLabel(motor_frame, text="Motor:", font=("Arial", 12), width=80, anchor="w").pack(side="left", padx=5)
-        self.status_labels['motor'] = ctk.CTkLabel(motor_frame, text="❌ Kapalı", text_color="red", width=120, anchor="w")
-        self.status_labels['motor'].pack(side="right", padx=5)
-        # Klima durumu
-        climate_frame = ctk.CTkFrame(self.visualization_frame)
-        climate_frame.pack(fill="x", padx=10, pady=5)
-        ctk.CTkLabel(climate_frame, text="Klima:", font=("Arial", 12), width=80, anchor="w").pack(side="left", padx=5)
-        self.status_labels['climate'] = ctk.CTkLabel(climate_frame, text="❌ Kapalı", text_color="red", width=120, anchor="w")
-        self.status_labels['climate'].pack(side="right", padx=5)
-        # Acil durum
-        emergency_frame = ctk.CTkFrame(self.visualization_frame)
-        emergency_frame.pack(fill="x", padx=10, pady=5)
-        ctk.CTkLabel(emergency_frame, text="Acil Durum:", font=("Arial", 12), width=80, anchor="w").pack(side="left", padx=5)
-        self.status_labels['emergency'] = ctk.CTkLabel(emergency_frame, text="✅ Sorun yok", text_color="green", width=120, anchor="w")
-        self.status_labels['emergency'].pack(side="right", padx=5)
-        
-        # Hız göstergesi
-        speed_frame = ctk.CTkFrame(self.visualization_frame)
-        speed_frame.pack(fill="x", padx=10, pady=5)
-        
-        ctk.CTkLabel(speed_frame, text="Hız:", font=("Arial", 12), width=80, anchor="w").pack(side="left", padx=5)
-        self.value_labels['speed'] = ctk.CTkLabel(speed_frame, text="0 km/h", width=120, anchor="w")
-        self.value_labels['speed'].pack(side="right", padx=5)
-        
-        # Yakıt seviyesi
-        fuel_frame = ctk.CTkFrame(self.visualization_frame)
-        fuel_frame.pack(fill="x", padx=10, pady=5)
-        
-        ctk.CTkLabel(fuel_frame, text="Yakıt:", font=("Arial", 12), width=80, anchor="w").pack(side="left", padx=5)
-        self.value_labels['fuel'] = ctk.CTkLabel(fuel_frame, text="100%", width=120, anchor="w")
-        self.value_labels['fuel'].pack(side="right", padx=5)
-        
-        # LED durumları
-        led_frame = ctk.CTkFrame(self.visualization_frame)
-        led_frame.pack(fill="x", padx=10, pady=10)
-        
-        ctk.CTkLabel(led_frame, text="LED Durumları:", font=("Arial", 12, "bold")).pack()
-        
-        led_grid = ctk.CTkFrame(led_frame)
-        led_grid.pack(fill="x", padx=5, pady=5)
-        led_grid.grid_columnconfigure((0,1), weight=1)
-        
-        # LED'ler
-        self.status_labels['led_green'] = ctk.CTkLabel(led_grid, text="🟢 Yeşil: Kapalı", text_color="gray")
-        self.status_labels['led_green'].grid(row=0, column=0, padx=5, pady=2)
-        
-        self.status_labels['led_blue'] = ctk.CTkLabel(led_grid, text="🔵 Mavi: Kapalı", text_color="gray")
-        self.status_labels['led_blue'].grid(row=0, column=1, padx=5, pady=2)
-        
-        self.status_labels['led_red'] = ctk.CTkLabel(led_grid, text="🔴 Kırmızı: Kapalı", text_color="gray")
-        self.status_labels['led_red'].grid(row=1, column=0, padx=5, pady=2)
-        
-        self.status_labels['led_speed'] = ctk.CTkLabel(led_grid, text="🟡 Hız: Kapalı", text_color="gray")
-        self.status_labels['led_speed'].grid(row=1, column=1, padx=5, pady=2)
-        
-        self.status_labels['led_fuel'] = ctk.CTkLabel(led_grid, text="🟠 Yakıt: Kapalı", text_color="gray")
-        self.status_labels['led_fuel'].grid(row=2, column=0, columnspan=2, padx=5, pady=2)
-    
+        title.grid(row=0, column=0, columnspan=2, pady=5)
+        # Sol sütun: Motor, Fan, Emergency (ikon+led grid, sadece frame yüksekliği artırıldı, led konumu eski)
+        for i, (name, on_img, off_img, led_color) in enumerate([
+            ("motor", "motor_on.png", "motor_off.png", "green"),
+            ("fan", "fan_on.png", "fan_off.png", "blue"),
+            ("emergency", "emergency_on.png", "emergency_off.png", "red")]):
+            row_frame = ctk.CTkFrame(self.visualization_frame, width=180, height=140)
+            row_frame.grid(row=i+1, column=0, sticky="ew", padx=10, pady=10)
+            row_frame.pack_propagate(False)
+            on_img_obj = ctk.CTkImage(light_image=Image.open(get_asset(on_img)), size=(128, 96))
+            off_img_obj = ctk.CTkImage(light_image=Image.open(get_asset(off_img)), size=(128, 96))
+            setattr(self, f"{name}_on_img", on_img_obj)
+            setattr(self, f"{name}_off_img", off_img_obj)
+            icon = ctk.CTkLabel(row_frame, image=off_img_obj, text="")
+            icon.pack(side="left", padx=5, pady=5, anchor="center")
+            setattr(self, f"{name}_icon", icon)
+            led_bg = row_frame.cget('fg_color')
+            if isinstance(led_bg, (tuple, list)):
+                led_bg = led_bg[0]
+            elif isinstance(led_bg, str) and " " in led_bg:
+                led_bg = led_bg.split()[0]
+            if not isinstance(led_bg, str) or not led_bg.startswith("#"):
+                led_bg = "#242424"
+            led_canvas = ctk.CTkCanvas(row_frame, width=36, height=36, highlightthickness=0, bg=led_bg)
+            led_canvas.pack(side="left", padx=35, pady=5, anchor="center")
+            led = led_canvas.create_oval(6, 6, 30, 30, fill="gray", outline="gray")
+            setattr(self, f"{name}_led_canvas", led_canvas)
+            setattr(self, f"{name}_led", led)
+        # Sağ sütun: Hız ve Yakıt göstergeleri (tek bir canvas üzerinde gauge+needle+led, alt hizalı)
+        gauge_frame = ctk.CTkFrame(self.visualization_frame, width=340, height=280)
+        gauge_frame.grid(row=1, column=1, rowspan=3, sticky="nsew", padx=10, pady=10)
+        gauge_frame.grid_propagate(False)
+        gauge_frame.grid_rowconfigure(0, weight=1)
+        gauge_frame.grid_rowconfigure(1, weight=1)
+        gauge_frame.grid_columnconfigure(0, weight=1)
+        # Hız göstergesi (tek canvas, alt hizalı)
+        self.speed_canvas = ctk.CTkCanvas(gauge_frame, width=300, height=192, bg="#222222", highlightthickness=0)
+        self.speed_canvas.grid(row=0, column=0, padx=10, pady=10, sticky="sw")
+        self.speed_gauge_img_pil = Image.open(get_asset("speed_gauge.png")).convert("RGBA").resize((256, 192))
+        self.speed_needle_img_pil = Image.open(get_asset("speed_needle.png")).convert("RGBA").resize((256, 192))
+        self.speed_gauge_img_tk = ImageTk.PhotoImage(self.speed_gauge_img_pil)
+        self.speed_gauge_canvas_img = self.speed_canvas.create_image(22, -10, anchor="nw", image=self.speed_gauge_img_tk)
+        self.speed_needle_img_tk = None  # İlk başta needle yok
+        self.speed_needle_canvas_img = None
+        led_bg = gauge_frame.cget('fg_color')
+        if isinstance(led_bg, (tuple, list)):
+            led_bg = led_bg[0]
+        elif isinstance(led_bg, str) and " " in led_bg:
+            led_bg = led_bg.split()[0]
+        if not isinstance(led_bg, str) or not led_bg.startswith("#"):
+            led_bg = "#242424"
+        self.speed_led_canvas = ctk.CTkCanvas(gauge_frame, width=36, height=36, highlightthickness=0, bg=led_bg)
+        self.speed_led_canvas.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+        self.speed_led = self.speed_led_canvas.create_oval(6, 6, 30, 30, fill="gray", outline="gray")
+        # Yakıt göstergesi (tek canvas, alt hizalı)
+        self.fuel_canvas = ctk.CTkCanvas(gauge_frame, width=300, height=192, bg="#222222", highlightthickness=0)
+        self.fuel_canvas.grid(row=1, column=0, padx=10, pady=10, sticky="sw")
+        self.fuel_gauge_img_pil = Image.open(get_asset("fuel_gauge.png")).convert("RGBA").resize((256, 192))
+        self.fuel_needle_img_pil = Image.open(get_asset("fuel_needle.png")).convert("RGBA").resize((256, 192))
+        self.fuel_gauge_img_tk = ImageTk.PhotoImage(self.fuel_gauge_img_pil)
+        self.fuel_gauge_canvas_img = self.fuel_canvas.create_image(22, -10, anchor="nw", image=self.fuel_gauge_img_tk)
+        self.fuel_needle_img_tk = None
+        self.fuel_needle_canvas_img = None
+        led_bg = gauge_frame.cget('fg_color')
+        if isinstance(led_bg, (tuple, list)):
+            led_bg = led_bg[0]
+        elif isinstance(led_bg, str) and " " in led_bg:
+            led_bg = led_bg.split()[0]
+        if not isinstance(led_bg, str) or not led_bg.startswith("#"):
+            led_bg = "#242424"
+        self.fuel_led_canvas = ctk.CTkCanvas(gauge_frame, width=36, height=36, highlightthickness=0, bg=led_bg)
+        self.fuel_led_canvas.grid(row=1, column=1, padx=10, pady=10, sticky="e")
+        self.fuel_led = self.fuel_led_canvas.create_oval(6, 6, 30, 30, fill="gray", outline="gray")
+
     def _build_monitor_frame(self, parent):
         """Monitör frame'ini oluştur"""
         self.monitor_frame = ctk.CTkFrame(parent)
-        self.monitor_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+        self.monitor_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         
         title = ctk.CTkLabel(self.monitor_frame, text="Mesaj Monitörü", font=("Arial", 14, "bold"))
         title.pack(pady=5)
@@ -654,14 +670,12 @@ class HILMainWindow(ctk.CTk):
             self._update_real_status(False)
     
     def _update_sim_status(self, connected: bool):
-        """Sim Arduino durumunu güncelle"""
         if connected:
             self.status_labels['sim'].configure(text="✅ Bağlı", text_color="green")
         else:
             self.status_labels['sim'].configure(text="❌ Bağlantı yok", text_color="red")
-    
+
     def _update_real_status(self, connected: bool):
-        """Real Arduino durumunu güncelle"""
         if connected:
             self.status_labels['real'].configure(text="✅ Bağlı", text_color="green")
         else:
@@ -673,44 +687,50 @@ class HILMainWindow(ctk.CTk):
         self.after(0, lambda: self._update_vehicle_display(state))
     
     def _update_vehicle_display(self, state: VehicleState):
-        """Araç durumunu görsel olarak güncelle"""
-        # Motor durumu
+        # Motor ikonu ve LED
         if state.motor_status:
-            self.status_labels['motor'].configure(text="✅ Açık", text_color="green")
-            self.status_labels['led_green'].configure(text="🟢 Yeşil: Açık", text_color="green")
+            self.motor_icon.configure(image=self.motor_on_img)
+            self.motor_led_canvas.itemconfig(self.motor_led, fill="green", outline="green")
         else:
-            self.status_labels['motor'].configure(text="❌ Kapalı", text_color="red")
-            self.status_labels['led_green'].configure(text="🟢 Yeşil: Kapalı", text_color="gray")
-        
-        # Klima durumu
+            self.motor_icon.configure(image=self.motor_off_img)
+            self.motor_led_canvas.itemconfig(self.motor_led, fill="gray", outline="gray")
+        # Fan ikonu ve LED
         if state.climate_status:
-            self.status_labels['climate'].configure(text="✅ Açık", text_color="green")
-            self.status_labels['led_blue'].configure(text="🔵 Mavi: Açık", text_color="blue")
+            self.fan_icon.configure(image=self.fan_on_img)
+            self.fan_led_canvas.itemconfig(self.fan_led, fill="blue", outline="blue")
         else:
-            self.status_labels['climate'].configure(text="❌ Kapalı", text_color="red")
-            self.status_labels['led_blue'].configure(text="🔵 Mavi: Kapalı", text_color="gray")
-        
-        # Acil durum
+            self.fan_icon.configure(image=self.fan_off_img)
+            self.fan_led_canvas.itemconfig(self.fan_led, fill="gray", outline="gray")
+        # Acil durum ikonu ve LED
         if state.emergency_status:
-            self.status_labels['emergency'].configure(text="❌ Acil Durum", text_color="red")
-            self.status_labels['led_red'].configure(text="🔴 Kırmızı: Açık", text_color="red")
+            self.emergency_icon.configure(image=self.emergency_on_img)
+            self.emergency_led_canvas.itemconfig(self.emergency_led, fill="red", outline="red")
         else:
-            self.status_labels['emergency'].configure(text="✅ Sorun yok", text_color="green")
-            self.status_labels['led_red'].configure(text="🔴 Kırmızı: Kapalı", text_color="gray")
-        
-        # Hız
-        self.value_labels['speed'].configure(text=f"{state.speed:.1f} km/h")
+            self.emergency_icon.configure(image=self.emergency_off_img)
+            self.emergency_led_canvas.itemconfig(self.emergency_led, fill="gray", outline="gray")
+        # Hız göstergesi needle pozisyonu ve led
+        speed_angle = -140 + min(max((state.speed / 150.0) * 180, 0), 180)  # 0-150 km/h için 0-180 derece
+        # Needle'ı döndür ve Canvas'ta güncelle (merkez 64,48)
+        rotated_speed_needle = self.speed_needle_img_pil.rotate(-speed_angle, resample=Image.BICUBIC, center=(128, 96), fillcolor=(0,0,0,0))
+        self.speed_needle_img_tk = ImageTk.PhotoImage(rotated_speed_needle)
+        if self.speed_needle_canvas_img is not None:
+            self.speed_canvas.delete(self.speed_needle_canvas_img)
+        self.speed_needle_canvas_img = self.speed_canvas.create_image(24, 40, anchor="nw", image=self.speed_needle_img_tk)
         if state.speed > state.speed_limit:
-            self.status_labels['led_speed'].configure(text="🟡 Hız: Açık", text_color="orange")
+            self.speed_led_canvas.itemconfig(self.speed_led, fill="orange", outline="orange")
         else:
-            self.status_labels['led_speed'].configure(text="🟡 Hız: Kapalı", text_color="gray")
-        
-        # Yakıt
-        self.value_labels['fuel'].configure(text=f"{state.fuel_level:.1f}%")
+            self.speed_led_canvas.itemconfig(self.speed_led, fill="gray", outline="gray")
+        # Yakıt göstergesi needle pozisyonu ve led
+        fuel_angle = -145 + min(max((state.fuel_level / 100.0) * 180, 0), 180)  # 0-100% için 0-180 derece
+        rotated_fuel_needle = self.fuel_needle_img_pil.rotate(-fuel_angle, resample=Image.BICUBIC, center=(128, 96), fillcolor=(0,0,0,0))
+        self.fuel_needle_img_tk = ImageTk.PhotoImage(rotated_fuel_needle)
+        if self.fuel_needle_canvas_img is not None:
+            self.fuel_canvas.delete(self.fuel_needle_canvas_img)
+        self.fuel_needle_canvas_img = self.fuel_canvas.create_image(24, 45, anchor="nw", image=self.fuel_needle_img_tk)
         if state.fuel_level < state.fuel_critical_level:
-            self.status_labels['led_fuel'].configure(text="🟠 Yakıt: Açık", text_color="orange")
+            self.fuel_led_canvas.itemconfig(self.fuel_led, fill="orange", outline="orange")
         else:
-            self.status_labels['led_fuel'].configure(text="🟠 Yakıt: Kapalı", text_color="gray")
+            self.fuel_led_canvas.itemconfig(self.fuel_led, fill="gray", outline="gray")
     
     def _on_message_received(self, source: str, message: str):
         """Mesaj alındığında çağrılır"""
