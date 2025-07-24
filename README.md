@@ -79,7 +79,7 @@ python src/main.py
 ### Ana Pencere
 Uygulama başlatıldığında ana pencere açılır. Buradan diğer modüllere erişebilirsiniz:
 
-![Ana Menü](src/report/screenshots/ana_menu.png)
+![Ana Menü](src/report/main_screenshots/ana_menu.png)
 
 _Ana menü genel görünüm_
 
@@ -96,19 +96,19 @@ _Ana menü genel görünüm_
    - Hepsi: Tüm pinleri aynı anda aç/kapat
 4. **Okuma:** Dijital ve analog pinleri otomatik oku
 
-![Kontrol Modu](src/report/screenshots/kontrol_modu.png)
+![Kontrol Modu](src/report/main_screenshots/kontrol_modu.png)
 
 _Kontrol modu genel görünüm_
 
-![Tümü Okuma](src/report/screenshots/kontrol_modu_tumuokuma.png)
+![Tümü Okuma](src/report/main_screenshots/kontrol_modu_tumuokuma.png)
 
 _Tüm pinleri okuma işlemi_
 
-![Tümü Yazma](src/report/screenshots/kontrol_modu_tumuyazma.png)
+![Tümü Yazma](src/report/main_screenshots/kontrol_modu_tumuyazma.png)
 
 _Tüm pinleri yazma işlemi_
 
-![Kullanıcı Ayarı](src/report/screenshots/kontrol_modu_kullaniciayari.png)
+![Kullanıcı Ayarı](src/report/main_screenshots/kontrol_modu_kullaniciayari.png)
 
 _Kullanıcıya özel pin ayarı_
 
@@ -118,7 +118,7 @@ _Kullanıcıya özel pin ayarı_
 3. **Pin Türü:** Digital/PWM (dijital), Analog/Digital (analog)
 4. **Toplu İşlemler:** Tüm pinleri aynı anda ayarla
 
-![Konfigürasyon Modu](src/report/screenshots/konfigurasyon_modu.png)
+![Konfigürasyon Modu](src/report/main_screenshots/konfigurasyon_modu.png)
 
 _Konfigürasyon ekranı_
 
@@ -128,28 +128,28 @@ _Konfigürasyon ekranı_
 3. **Mesaj İzleme:** Gönderilen/alınan mesajları gör
 4. **Mesaj Gönderme:** Manuel mesaj gönder
 
-![Serial Monitor](src/report/screenshots/seri_monitor.png)
+![Serial Monitor](src/report/main_screenshots/seri_monitor.png)
 
 _Serial monitor genel görünüm_
 
-![Serial Monitor Haberleşme](src/report/screenshots/seri_monitor_haberlesme.png)
+![Serial Monitor Haberleşme](src/report/main_screenshots/seri_monitor_haberlesme.png)
 
 _Aktif veri trafiği örneği_
 
 ### Simülasyon ve Proteus
-![Proteus Şeması](src/report/screenshots/proteus_sema.png)
+![Proteus Şeması](src/report/main_screenshots/proteus_sema.png)
 
 _Proteus devre şeması_
 
-![Simülasyon Genel](src/report/screenshots/simulasyon.png)
+![Simülasyon Genel](src/report/main_screenshots/simulasyon.png)
 
 _Simülasyon genel görünüm_
 
-![Simülasyon Tümü Açık](src/report/screenshots/simulasyon_tumuacik.png)
+![Simülasyon Tümü Açık](src/report/main_screenshots/simulasyon_tumuacik.png)
 
 _Tüm pinler açık simülasyon_
 
-![Simülasyon Tümü Kapalı](src/report/screenshots/simulasyon_tumukapali.png)
+![Simülasyon Tümü Kapalı](src/report/main_screenshots/simulasyon_tumukapali.png)
 
 _Tüm pinler kapalı simülasyon_
 
@@ -159,16 +159,16 @@ Aşağıda, uygulamada bulunan üç temel patternin (desenin) akış mantığı 
 
 - **Sıralı Pattern:** Pinler sırayla açılır ve kapanır (dalga efekti)
 
-![Sıralı Pattern](src/report/screenshots/sirali_pattern.gif)
+![Sıralı Pattern](src/report/main_screenshots/sirali_pattern.gif)
 
 
 - **Blink Pattern:** Her pin sırayla açılıp kapanır (yanıp sönme)
 
-![Blink Pattern](src/report/screenshots/blink_pattern.gif)
+![Blink Pattern](src/report/main_screenshots/blink_pattern.gif)
 
 - **Hepsi Pattern:** Tüm pinler aynı anda açılır/kapanır (senkronize)
 
-![Hepsi Pattern](src/report/screenshots/hepsi_pattern.gif)
+![Hepsi Pattern](src/report/main_screenshots/hepsi_pattern.gif)
 
 ## 📁 Proje Yapısı
 
@@ -196,7 +196,7 @@ FNSS/
 │   └── report/                 # Rapor ve ekran görüntüleri
 │       ├── FNSS Arduino Simülasyon Test Projesi Raporu.docx
 │       ├── FNSS Arduino Simülasyon Test Projesi Raporu.pdf
-│       └── screenshots/        # Ekran görüntüleri ve simülasyon görselleri
+│       └── main_screenshots/        # Ekran görüntüleri ve simülasyon görselleri
 ├── build_exe.py                # Derleme scripti
 ├── requirements.txt            # Python bağımlılıkları
 ├── LICENSE                     # Lisans dosyası
