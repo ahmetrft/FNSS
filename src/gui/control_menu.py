@@ -288,7 +288,7 @@ class ControlMenu(ctk.CTkToplevel):
         pattern_frame = ctk.CTkFrame(ctrl_frame)
         pattern_frame.grid(row=0, column=3, columnspan=3, padx=10, pady=10, sticky="e")
 
-        ctk.CTkLabel(pattern_frame, text="Okuma", font=("Arial", 13, "bold")).grid(row=0, column=0, columnspan=4, pady=(0, 6))
+        ctk.CTkLabel(pattern_frame, text="Yazma", font=("Arial", 13, "bold")).grid(row=0, column=0, columnspan=4, pady=(0, 6))
 
         # Pattern yönetimi
         self.pattern_stop_events = {}
